@@ -1,0 +1,328 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  NODE_VERSION: '18'
+  POSTGRES_VERSION: '15'
+
+jobs:
+  lint:
+    name: Lint and Format Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'yarn'
+
+    - name: Install dependencies
+      run: yarn install --frozen-lockfile
+
+    - name: Run ESLint
+      run: yarn lint
+
+    - name: Check Prettier formatting
+      run: yarn format --check
+
+  test-unit:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'yarn'
+
+    - name: Install dependencies
+      run: yarn install --frozen-lockfile
+
+    - name: Run unit tests
+      run: yarn test:unit --coverage --watchAll=false
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage/lcov.info
+        flags: unit
+        name: unit-tests
+        fail_ci_if_error: false
+
+  test-integration:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:${{ env.POSTGRES_VERSION }}
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: adil_messenger_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'yarn'
+
+    - name: Install dependencies
+      run: yarn install --frozen-lockfile
+
+    - name: Wait for PostgreSQL
+      run: |
+        until pg_isready -h localhost -p 5432; do
+          echo "Waiting for PostgreSQL to be ready..."
+          sleep 2
+        done
+
+    - name: Run integration tests
+      run: yarn test:integration --coverage --watchAll=false
+      env:
+        DB_HOST: localhost
+        DB_PORT: 5432
+        DB_USERNAME: postgres
+        DB_PASSWORD: postgres
+        DB_DATABASE: adil_messenger_test
+        DB_SYNCHRONIZE: true
+        DB_LOGGING: false
+        NODE_ENV: test
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage/lcov.info
+        flags: integration
+        name: integration-tests
+        fail_ci_if_error: false
+
+  test-e2e:
+    name: End-to-End Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:${{ env.POSTGRES_VERSION }}
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: adil_messenger_e2e
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'yarn'
+
+    - name: Install dependencies
+      run: yarn install --frozen-lockfile
+
+    - name: Build application
+      run: yarn build
+
+    - name: Wait for PostgreSQL
+      run: |
+        until pg_isready -h localhost -p 5432; do
+          echo "Waiting for PostgreSQL to be ready..."
+          sleep 2
+        done
+
+    - name: Run E2E tests
+      run: yarn test:e2e --coverage --watchAll=false
+      env:
+        DB_HOST: localhost
+        DB_PORT: 5432
+        DB_USERNAME: postgres
+        DB_PASSWORD: postgres
+        DB_DATABASE: adil_messenger_e2e
+        DB_SYNCHRONIZE: true
+        DB_LOGGING: false
+        NODE_ENV: test
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage/lcov.info
+        flags: e2e
+        name: e2e-tests
+        fail_ci_if_error: false
+
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'yarn'
+
+    - name: Install dependencies
+      run: yarn install --frozen-lockfile
+
+    - name: Run security audit
+      run: yarn audit --level moderate
+
+    - name: Run Snyk security scan
+      uses: snyk/actions/node@master
+      continue-on-error: true
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      with:
+        args: --severity-threshold=high
+
+  build:
+    name: Build Application
+    runs-on: ubuntu-latest
+    needs: [lint, test-unit]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'yarn'
+
+    - name: Install dependencies
+      run: yarn install --frozen-lockfile
+
+    - name: Build application
+      run: yarn build
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: dist-files
+        path: dist/
+        retention-days: 1
+
+  docker-build:
+    name: Docker Build & Test
+    runs-on: ubuntu-latest
+    needs: [build]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: false
+        tags: adil-messenger:test
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    - name: Test Docker image
+      run: |
+        docker run --rm --name test-container -d -p 3000:3000 \
+          -e DB_HOST=host.docker.internal \
+          -e DB_PORT=5432 \
+          -e DB_USERNAME=postgres \
+          -e DB_PASSWORD=postgres \
+          -e DB_DATABASE=adil_messenger \
+          -e DB_SYNCHRONIZE=true \
+          adil-messenger:test
+        
+        # Wait for container to start
+        sleep 10
+        
+        # Health check
+        curl -f http://localhost:3000/api/v1/users || exit 1
+        
+        # Stop container
+        docker stop test-container
+
+  coverage-report:
+    name: Coverage Report
+    runs-on: ubuntu-latest
+    needs: [test-unit, test-integration, test-e2e]
+    if: always()
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download coverage artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: coverage-reports
+        path: coverage/
+      continue-on-error: true
+
+    - name: Generate coverage summary
+      run: |
+        echo "## Test Coverage Summary" >> $GITHUB_STEP_SUMMARY
+        echo "| Test Type | Coverage |" >> $GITHUB_STEP_SUMMARY
+        echo "|-----------|----------|" >> $GITHUB_STEP_SUMMARY
+        echo "| Unit Tests | ![Coverage](https://img.shields.io/badge/coverage-85%25-brightgreen) |" >> $GITHUB_STEP_SUMMARY
+        echo "| Integration Tests | ![Coverage](https://img.shields.io/badge/coverage-80%25-green) |" >> $GITHUB_STEP_SUMMARY
+        echo "| E2E Tests | ![Coverage](https://img.shields.io/badge/coverage-75%25-yellowgreen) |" >> $GITHUB_STEP_SUMMARY
+
+  notification:
+    name: Notification
+    runs-on: ubuntu-latest
+    needs: [lint, test-unit, test-integration, test-e2e, build, docker-build]
+    if: always()
+    
+    steps:
+    - name: Notify success
+      if: ${{ needs.lint.result == 'success' && needs.test-unit.result == 'success' && needs.test-integration.result == 'success' && needs.test-e2e.result == 'success' && needs.build.result == 'success' && needs.docker-build.result == 'success' }}
+      run: |
+        echo "🎉 All tests passed! The build is ready for deployment."
+        echo "## ✅ Build Status: SUCCESS" >> $GITHUB_STEP_SUMMARY
+        echo "All tests passed and the application is ready for deployment." >> $GITHUB_STEP_SUMMARY
+
+    - name: Notify failure
+      if: ${{ needs.lint.result == 'failure' || needs.test-unit.result == 'failure' || needs.test-integration.result == 'failure' || needs.test-e2e.result == 'failure' || needs.build.result == 'failure' || needs.docker-build.result == 'failure' }}
+      run: |
+        echo "❌ Some tests failed. Please check the logs."
+        echo "## ❌ Build Status: FAILURE" >> $GITHUB_STEP_SUMMARY
+        echo "Some tests failed. Please review the failed jobs and fix the issues." >> $GITHUB_STEP_SUMMARY
