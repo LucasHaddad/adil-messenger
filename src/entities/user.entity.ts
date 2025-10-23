@@ -5,7 +5,10 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
+  BeforeInsert,
+  BeforeUpdate,
 } from 'typeorm';
+import * as bcrypt from 'bcryptjs';
 import { Message } from '@/entities/message.entity';
 
 @Entity('users')
@@ -14,16 +17,19 @@ export class User {
   id: string;
 
   @Column({ unique: true })
-  username: string;
+  email: string;
 
   @Column({ unique: true })
-  email: string;
+  username: string;
 
   @Column()
   fullName: string;
 
+  @Column()
+  password: string;
+
   @Column({ nullable: true })
-  avatarUrl?: string;
+  currentSessionId: string;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -31,7 +37,23 @@ export class User {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  // Relationships
   @OneToMany(() => Message, (message) => message.author)
   messages: Message[];
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  async hashPassword() {
+    if (this.password) {
+      this.password = await bcrypt.hash(this.password, 12);
+    }
+  }
+
+  async validatePassword(password: string): Promise<boolean> {
+    return bcrypt.compare(password, this.password);
+  }
+
+  constructor() {
+    this.createdAt = new Date();
+    this.updatedAt = new Date();
+  }
 }

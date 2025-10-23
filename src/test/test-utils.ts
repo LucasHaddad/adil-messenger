@@ -7,10 +7,13 @@ export const createMockUser = (overrides: Partial<User> = {}): User => ({
   username: 'testuser',
   email: 'test@example.com',
   fullName: 'Test User',
-  avatarUrl: null,
+  password: 'hashedpassword',
+  currentSessionId: null,
   createdAt: new Date('2023-01-01'),
   updatedAt: new Date('2023-01-01'),
   messages: [],
+  hashPassword: async function() { /* mock */ },
+  validatePassword: async function() { return true; },
   ...overrides,
 });
 

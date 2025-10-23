@@ -11,6 +11,7 @@ import {
   ParseIntPipe,
   HttpCode,
   HttpStatus,
+  Request,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -19,12 +20,20 @@ import {
   ApiParam,
   ApiQuery,
   ApiBody,
+  ApiBearerAuth,
+  ApiHeader,
 } from '@nestjs/swagger';
 import { MessageService } from '@/services/message.service';
 import { CreateMessageDto, UpdateMessageDto, MessageResponseDto } from '@/dto';
 import { Message } from '@/entities';
 
 @ApiTags('Messages')
+@ApiBearerAuth()
+@ApiHeader({
+  name: 'X-CSRF-Token',
+  description: 'CSRF token for security',
+  required: true,
+})
 @Controller('messages')
 export class MessageController {
   constructor(private readonly messageService: MessageService) {}

@@ -1,0 +1,114 @@
+import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { randomBytes } from 'crypto';
+import { User } from '@/entities/user.entity';
+import { LoginDto } from '@/dto/login.dto';
+import { RegisterDto } from '@/dto/register.dto';
+import { AuthResponseDto } from '@/dto/auth-response.dto';
+import { JwtPayload } from '@/auth/strategies/jwt.strategy';
+
+@Injectable()
+export class AuthService {
+  constructor(
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+    private jwtService: JwtService,
+  ) {}
+
+  async validateUser(email: string, password: string): Promise<User | null> {
+    const user = await this.userRepository.findOne({ where: { email } });
+    
+    if (user && await user.validatePassword(password)) {
+      return user;
+    }
+    
+    return null;
+  }
+
+  async register(registerDto: RegisterDto): Promise<AuthResponseDto> {
+    const { email, username, password, fullName } = registerDto;
+
+    // Check if user already exists
+    const existingUser = await this.userRepository.findOne({
+      where: [{ email }, { username }],
+    });
+
+    if (existingUser) {
+      if (existingUser.email === email) {
+        throw new ConflictException('Email already registered');
+      }
+      if (existingUser.username === username) {
+        throw new ConflictException('Username already taken');
+      }
+    }
+
+    // Create new user
+    const user = this.userRepository.create({
+      email,
+      username,
+      fullName,
+      password, // Will be hashed in the entity
+    });
+
+    await this.userRepository.save(user);
+
+    // Generate session and tokens
+    return this.generateAuthResponse(user);
+  }
+
+  async login(loginDto: LoginDto): Promise<AuthResponseDto> {
+    const { email, password } = loginDto;
+    
+    const user = await this.validateUser(email, password);
+    
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    return this.generateAuthResponse(user);
+  }
+
+  async logout(userId: string): Promise<{ message: string }> {
+    await this.userRepository.update(userId, { currentSessionId: null });
+    return { message: 'Successfully logged out' };
+  }
+
+  async generateCsrfToken(): Promise<string> {
+    return randomBytes(32).toString('hex');
+  }
+
+  private async generateAuthResponse(user: User): Promise<AuthResponseDto> {
+    const sessionId = randomBytes(32).toString('hex');
+    const csrfToken = await this.generateCsrfToken();
+
+    // Update user's current session
+    await this.userRepository.update(user.id, { currentSessionId: sessionId });
+
+    const payload: JwtPayload = {
+      sub: user.id,
+      email: user.email,
+      sessionId,
+    };
+
+    const accessToken = this.jwtService.sign(payload);
+
+    return {
+      accessToken,
+      csrfToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        fullName: user.fullName,
+      },
+      tokenType: 'Bearer',
+      expiresIn: 3600, // 1 hour
+    };
+  }
+
+  async refreshToken(user: User): Promise<AuthResponseDto> {
+    return this.generateAuthResponse(user);
+  }
+}

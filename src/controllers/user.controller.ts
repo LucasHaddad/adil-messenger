@@ -1,8 +1,6 @@
 import {
   Controller,
   Get,
-  Post,
-  Body,
   Param,
   ParseUUIDPipe,
 } from '@nestjs/common';
@@ -11,30 +9,22 @@ import {
   ApiOperation,
   ApiResponse,
   ApiParam,
-  ApiBody,
+  ApiBearerAuth,
+  ApiHeader,
 } from '@nestjs/swagger';
 import { UserService } from '@/services/user.service';
-import { CreateUserDto } from '@/dto';
 import { User } from '@/entities';
 
 @ApiTags('Users')
+@ApiBearerAuth()
+@ApiHeader({
+  name: 'X-CSRF-Token',
+  description: 'CSRF token for security',
+  required: true,
+})
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
-
-  @Post()
-  @ApiOperation({ summary: 'Create a new user' })
-  @ApiBody({ type: CreateUserDto })
-  @ApiResponse({
-    status: 201,
-    description: 'User created successfully',
-    type: User,
-  })
-  @ApiResponse({ status: 400, description: 'Bad request - validation failed' })
-  @ApiResponse({ status: 409, description: 'Conflict - username or email already exists' })
-  async createUser(@Body() createUserDto: CreateUserDto): Promise<User> {
-    return this.userService.createUser(createUserDto);
-  }
 
   @Get()
   @ApiOperation({ summary: 'Get all users' })

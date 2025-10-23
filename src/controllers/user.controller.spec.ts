@@ -1,13 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserController } from '@/controllers/user.controller';
 import { UserService } from '@/services/user.service';
-import { CreateUserDto } from '@/dto';
 import { 
   testUser1, 
   testUser2,
-  TEST_ERRORS 
+  TEST_ERRORS,
+  createMockUser,
 } from '@/test/test-utils';
-import { NotFoundException, ConflictException } from '@nestjs/common';
+import { NotFoundException } from '@nestjs/common';
 
 describe('UserController', () => {
   let controller: UserController;
@@ -15,7 +15,6 @@ describe('UserController', () => {
 
   beforeEach(async () => {
     const mockUserService = {
-      createUser: jest.fn(),
       getUsers: jest.fn(),
       getUserById: jest.fn(),
       getUserByUsername: jest.fn(),
@@ -37,46 +36,6 @@ describe('UserController', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
-  });
-
-  describe('createUser', () => {
-    const createUserDto: CreateUserDto = {
-      username: 'newuser',
-      email: 'newuser@example.com',
-      fullName: 'New User',
-    };
-
-    it('should create a new user successfully', async () => {
-      userService.createUser.mockResolvedValue(testUser1);
-
-      const result = await controller.createUser(createUserDto);
-
-      expect(userService.createUser).toHaveBeenCalledWith(createUserDto);
-      expect(result).toEqual(testUser1);
-    });
-
-    it('should propagate ConflictException for duplicate username', async () => {
-      const error = new ConflictException(TEST_ERRORS.USERNAME_EXISTS);
-      userService.createUser.mockRejectedValue(error);
-
-      await expect(controller.createUser(createUserDto)).rejects.toThrow(error);
-      expect(userService.createUser).toHaveBeenCalledWith(createUserDto);
-    });
-
-    it('should propagate ConflictException for duplicate email', async () => {
-      const error = new ConflictException(TEST_ERRORS.EMAIL_EXISTS);
-      userService.createUser.mockRejectedValue(error);
-
-      await expect(controller.createUser(createUserDto)).rejects.toThrow(error);
-      expect(userService.createUser).toHaveBeenCalledWith(createUserDto);
-    });
-
-    it('should handle service errors gracefully', async () => {
-      const dbError = new Error('Database connection failed');
-      userService.createUser.mockRejectedValue(dbError);
-
-      await expect(controller.createUser(createUserDto)).rejects.toThrow(dbError);
-    });
   });
 
   describe('getUsers', () => {
@@ -150,7 +109,7 @@ describe('UserController', () => {
 
     it('should handle special characters in username', async () => {
       const specialUsername = 'user@#$%';
-      const userWithSpecialChars = { ...testUser1, username: specialUsername };
+      const userWithSpecialChars = createMockUser({ ...testUser1, username: specialUsername });
       userService.getUserByUsername.mockResolvedValue(userWithSpecialChars);
 
       const result = await controller.getUserByUsername(specialUsername);
@@ -206,55 +165,12 @@ describe('UserController', () => {
 
     it('should handle Unicode characters in username', async () => {
       const unicodeUsername = '用户名测试';
-      const unicodeUser = { ...testUser1, username: unicodeUsername };
+      const unicodeUser = createMockUser({ ...testUser1, username: unicodeUsername });
       userService.getUserByUsername.mockResolvedValue(unicodeUser);
 
       const result = await controller.getUserByUsername(unicodeUsername);
 
       expect(result.username).toBe(unicodeUsername);
-    });
-
-    it('should handle concurrent requests', async () => {
-      const createUserDto: CreateUserDto = {
-        username: 'concurrent',
-        email: 'concurrent@example.com',
-        fullName: 'Concurrent User',
-      };
-
-      // Simulate concurrent creation attempts
-      const concurrencyError = new ConflictException('Username already exists');
-      userService.createUser.mockRejectedValue(concurrencyError);
-
-      await expect(controller.createUser(createUserDto)).rejects.toThrow(concurrencyError);
-    });
-
-    it('should handle malformed email in createUser', async () => {
-      const malformedEmailDto: CreateUserDto = {
-        username: 'testuser',
-        email: 'not-an-email',
-        fullName: 'Test User',
-      };
-
-      // The validation should happen at the DTO level, but we test service propagation
-      const validationError = new Error('Invalid email format');
-      userService.createUser.mockRejectedValue(validationError);
-
-      await expect(controller.createUser(malformedEmailDto)).rejects.toThrow(validationError);
-    });
-
-    it('should handle empty fullName in createUser', async () => {
-      const emptyNameDto: CreateUserDto = {
-        username: 'testuser',
-        email: 'test@example.com',
-        fullName: '',
-      };
-
-      const userWithEmptyName = { ...testUser1, fullName: '' };
-      userService.createUser.mockResolvedValue(userWithEmptyName);
-
-      const result = await controller.createUser(emptyNameDto);
-
-      expect(result.fullName).toBe('');
     });
   });
 });
