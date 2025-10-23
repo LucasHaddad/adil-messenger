@@ -1,4 +1,4 @@
-import 'reflect-metadata';
+import "reflect-metadata";
 
 // Global test configuration
 jest.setTimeout(30000);

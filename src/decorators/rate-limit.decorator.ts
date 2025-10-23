@@ -1,10 +1,10 @@
-import { SetMetadata } from '@nestjs/common';
+import { SetMetadata } from "@nestjs/common";
 
-export const THROTTLER_LIMIT = 'throttler:limit';
-export const THROTTLER_TTL = 'throttler:ttl';
+export const THROTTLER_LIMIT = "throttler:limit";
+export const THROTTLER_TTL = "throttler:ttl";
 
 export const RateLimit = (limit: number, ttl: number) =>
-  SetMetadata('throttler', { limit, ttl });
+  SetMetadata("throttler", { limit, ttl });
 
 // Predefined rate limit decorators for common use cases
 export const AuthRateLimit = () => RateLimit(5, 60); // 5 requests per minute for auth endpoints

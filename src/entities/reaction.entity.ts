@@ -6,31 +6,31 @@ import {
   ManyToOne,
   JoinColumn,
   Unique,
-} from 'typeorm';
-import { User } from '@/entities/user.entity';
-import { Message } from '@/entities/message.entity';
+} from "typeorm";
+import { User } from "@/entities/user.entity";
+import { Message } from "@/entities/message.entity";
 
 export enum ReactionType {
-  LIKE = 'like',
-  DISLIKE = 'dislike',
-  HEART = 'heart',
-  LAUGH = 'laugh',
-  ANGRY = 'angry',
-  SURPRISED = 'surprised',
-  SAD = 'sad',
-  THUMBS_UP = 'thumbs_up',
-  THUMBS_DOWN = 'thumbs_down',
-  FIRE = 'fire',
+  LIKE = "like",
+  DISLIKE = "dislike",
+  HEART = "heart",
+  LAUGH = "laugh",
+  ANGRY = "angry",
+  SURPRISED = "surprised",
+  SAD = "sad",
+  THUMBS_UP = "thumbs_up",
+  THUMBS_DOWN = "thumbs_down",
+  FIRE = "fire",
 }
 
-@Entity('reactions')
-@Unique(['userId', 'messageId']) // One reaction per user per message
+@Entity("reactions")
+@Unique(["userId", "messageId"]) // One reaction per user per message
 export class Reaction {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
   @Column({
-    type: 'enum',
+    type: "enum",
     enum: ReactionType,
     default: ReactionType.LIKE,
   })
@@ -40,18 +40,18 @@ export class Reaction {
   createdAt: Date;
 
   // Foreign Keys
-  @Column('uuid')
+  @Column("uuid")
   userId: string;
 
-  @Column('uuid')
+  @Column("uuid")
   messageId: string;
 
   // Relationships
   @ManyToOne(() => User)
-  @JoinColumn({ name: 'userId' })
+  @JoinColumn({ name: "userId" })
   user: User;
 
-  @ManyToOne(() => Message, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'messageId' })
+  @ManyToOne(() => Message, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "messageId" })
   message: Message;
 }

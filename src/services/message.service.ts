@@ -1,8 +1,15 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException, Inject, forwardRef } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Message, User } from '@/entities';
-import { CreateMessageDto, UpdateMessageDto } from '@/dto';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+  Inject,
+  forwardRef,
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { Message, User } from "@/entities";
+import { CreateMessageDto, UpdateMessageDto } from "@/dto";
 
 @Injectable()
 export class MessageService {
@@ -11,7 +18,7 @@ export class MessageService {
     private messageRepository: Repository<Message>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
-    @Inject(forwardRef(() => 'ChatGateway'))
+    @Inject(forwardRef(() => "ChatGateway"))
     private chatGateway?: any, // We'll type this as any to avoid circular dependency issues
   ) {}
 
@@ -23,9 +30,11 @@ export class MessageService {
     const { authorId, parentMessageId, content } = createMessageDto;
 
     // Verify that the author exists
-    const author = await this.userRepository.findOne({ where: { id: authorId } });
+    const author = await this.userRepository.findOne({
+      where: { id: authorId },
+    });
     if (!author) {
-      throw new NotFoundException('Author not found');
+      throw new NotFoundException("Author not found");
     }
 
     // If this is a reply, verify the parent message exists and is not deleted
@@ -34,7 +43,9 @@ export class MessageService {
         where: { id: parentMessageId, isDeleted: false },
       });
       if (!parentMessage) {
-        throw new NotFoundException('Parent message not found or has been deleted');
+        throw new NotFoundException(
+          "Parent message not found or has been deleted",
+        );
       }
     }
 
@@ -59,9 +70,14 @@ export class MessageService {
     page: number = 1,
     limit: number = 20,
     parentMessageId?: string,
-  ): Promise<{ messages: Message[]; total: number; page: number; limit: number }> {
+  ): Promise<{
+    messages: Message[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
     const whereClause: any = { isDeleted: false };
-    
+
     // Filter by parent message if specified (get replies)
     if (parentMessageId !== undefined) {
       whereClause.parentMessageId = parentMessageId;
@@ -72,8 +88,8 @@ export class MessageService {
 
     const [messages, total] = await this.messageRepository.findAndCount({
       where: whereClause,
-      relations: ['author'],
-      order: { createdAt: 'DESC' },
+      relations: ["author"],
+      order: { createdAt: "DESC" },
       skip: (page - 1) * limit,
       take: limit,
     });
@@ -99,11 +115,11 @@ export class MessageService {
   async getMessageById(id: string): Promise<Message> {
     const message = await this.messageRepository.findOne({
       where: { id, isDeleted: false },
-      relations: ['author'],
+      relations: ["author"],
     });
 
     if (!message) {
-      throw new NotFoundException('Message not found');
+      throw new NotFoundException("Message not found");
     }
 
     // Add reply count
@@ -117,7 +133,11 @@ export class MessageService {
   /**
    * Get replies for a specific message
    */
-  async getReplies(messageId: string, page: number = 1, limit: number = 10): Promise<{
+  async getReplies(
+    messageId: string,
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<{
     replies: Message[];
     total: number;
     page: number;
@@ -129,7 +149,7 @@ export class MessageService {
     });
 
     if (!parentMessage) {
-      throw new NotFoundException('Parent message not found');
+      throw new NotFoundException("Parent message not found");
     }
 
     const result = await this.getMessages(page, limit, messageId);
@@ -152,16 +172,16 @@ export class MessageService {
   ): Promise<Message> {
     const message = await this.messageRepository.findOne({
       where: { id, isDeleted: false },
-      relations: ['author'],
+      relations: ["author"],
     });
 
     if (!message) {
-      throw new NotFoundException('Message not found');
+      throw new NotFoundException("Message not found");
     }
 
     // Check if the user is the author
     if (message.authorId !== authorId) {
-      throw new ForbiddenException('You can only edit your own messages');
+      throw new ForbiddenException("You can only edit your own messages");
     }
 
     // Update the message
@@ -198,12 +218,12 @@ export class MessageService {
     });
 
     if (!message) {
-      throw new NotFoundException('Message not found');
+      throw new NotFoundException("Message not found");
     }
 
     // Check if the user is the author
     if (message.authorId !== authorId) {
-      throw new ForbiddenException('You can only delete your own messages');
+      throw new ForbiddenException("You can only delete your own messages");
     }
 
     // Soft delete the message
@@ -224,12 +244,12 @@ export class MessageService {
    */
   async getConversationThread(messageId: string): Promise<Message> {
     const message = await this.getMessageById(messageId);
-    
+
     // Get all replies recursively
     const replies = await this.messageRepository.find({
       where: { parentMessageId: messageId, isDeleted: false },
-      relations: ['author'],
-      order: { createdAt: 'ASC' },
+      relations: ["author"],
+      order: { createdAt: "ASC" },
     });
 
     // Add reply counts to replies

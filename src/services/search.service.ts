@@ -1,10 +1,10 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, SelectQueryBuilder } from 'typeorm';
-import { Message } from '@/entities/message.entity';
-import { User } from '@/entities/user.entity';
-import { MessageSearchDto } from '@/dto/message-search.dto';
-import { MessageSearchResponseDto } from '@/dto/message-search-response.dto';
+import { Injectable } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, SelectQueryBuilder } from "typeorm";
+import { Message } from "@/entities/message.entity";
+import { User } from "@/entities/user.entity";
+import { MessageSearchDto } from "@/dto/message-search.dto";
+import { MessageSearchResponseDto } from "@/dto/message-search-response.dto";
 
 @Injectable()
 export class SearchService {
@@ -13,7 +13,9 @@ export class SearchService {
     private messageRepository: Repository<Message>,
   ) {}
 
-  async searchMessages(searchDto: MessageSearchDto): Promise<MessageSearchResponseDto> {
+  async searchMessages(
+    searchDto: MessageSearchDto,
+  ): Promise<MessageSearchResponseDto> {
     const {
       query,
       userId,
@@ -25,23 +27,23 @@ export class SearchService {
 
     // Create base query with relations
     let queryBuilder: SelectQueryBuilder<Message> = this.messageRepository
-      .createQueryBuilder('message')
-      .leftJoinAndSelect('message.user', 'user')
-      .leftJoinAndSelect('message.reactions', 'reactions')
+      .createQueryBuilder("message")
+      .leftJoinAndSelect("message.user", "user")
+      .leftJoinAndSelect("message.reactions", "reactions")
       .select([
-        'message.id',
-        'message.content',
-        'message.createdAt',
-        'message.updatedAt',
-        'message.attachmentUrl',
-        'message.attachmentName',
-        'message.attachmentType',
-        'message.attachmentSize',
-        'user.id',
-        'user.username',
-        'user.email',
-        'reactions.id',
-        'reactions.type',
+        "message.id",
+        "message.content",
+        "message.createdAt",
+        "message.updatedAt",
+        "message.attachmentUrl",
+        "message.attachmentName",
+        "message.attachmentType",
+        "message.attachmentSize",
+        "user.id",
+        "user.username",
+        "user.email",
+        "reactions.id",
+        "reactions.type",
       ]);
 
     // Add text search if query is provided
@@ -50,37 +52,41 @@ export class SearchService {
       // This will search for the query terms in the message content
       queryBuilder = queryBuilder.andWhere(
         `to_tsvector('english', message.content) @@ plainto_tsquery('english', :query)`,
-        { query: query.trim() }
+        { query: query.trim() },
       );
     }
 
     // Add user filter
     if (userId) {
-      queryBuilder = queryBuilder.andWhere('message.userId = :userId', { userId });
+      queryBuilder = queryBuilder.andWhere("message.userId = :userId", {
+        userId,
+      });
     }
 
     // Add date range filters
     if (dateFrom) {
-      queryBuilder = queryBuilder.andWhere('message.createdAt >= :dateFrom', {
+      queryBuilder = queryBuilder.andWhere("message.createdAt >= :dateFrom", {
         dateFrom: new Date(dateFrom),
       });
     }
 
     if (dateTo) {
-      queryBuilder = queryBuilder.andWhere('message.createdAt <= :dateTo', {
+      queryBuilder = queryBuilder.andWhere("message.createdAt <= :dateTo", {
         dateTo: new Date(dateTo),
       });
     }
 
     // Order by relevance for text search, then by date
     if (query && query.trim()) {
-      queryBuilder = queryBuilder.orderBy(
-        `ts_rank(to_tsvector('english', message.content), plainto_tsquery('english', :rankQuery))`,
-        'DESC'
-      ).setParameter('rankQuery', query.trim());
-      queryBuilder = queryBuilder.addOrderBy('message.createdAt', 'DESC');
+      queryBuilder = queryBuilder
+        .orderBy(
+          `ts_rank(to_tsvector('english', message.content), plainto_tsquery('english', :rankQuery))`,
+          "DESC",
+        )
+        .setParameter("rankQuery", query.trim());
+      queryBuilder = queryBuilder.addOrderBy("message.createdAt", "DESC");
     } else {
-      queryBuilder = queryBuilder.orderBy('message.createdAt', 'DESC');
+      queryBuilder = queryBuilder.orderBy("message.createdAt", "DESC");
     }
 
     // Get total count for pagination
@@ -107,33 +113,36 @@ export class SearchService {
     // This would typically be implemented with a search_logs table
     // For now, return some example popular terms
     return [
-      'hello',
-      'meeting',
-      'project',
-      'update',
-      'help',
-      'question',
-      'urgent',
-      'deadline',
-      'feedback',
-      'review',
+      "hello",
+      "meeting",
+      "project",
+      "update",
+      "help",
+      "question",
+      "urgent",
+      "deadline",
+      "feedback",
+      "review",
     ].slice(0, limit);
   }
 
-  async getSuggestions(partialQuery: string, limit: number = 5): Promise<string[]> {
+  async getSuggestions(
+    partialQuery: string,
+    limit: number = 5,
+  ): Promise<string[]> {
     if (!partialQuery || partialQuery.length < 2) {
       return [];
     }
 
     // Get unique words from message content that start with the partial query
     const result = await this.messageRepository
-      .createQueryBuilder('message')
+      .createQueryBuilder("message")
       .select("DISTINCT regexp_split_to_table(message.content, '\\s+') AS word")
       .where("regexp_split_to_table(message.content, '\\s+') ILIKE :query", {
         query: `${partialQuery}%`,
       })
       .andWhere("LENGTH(regexp_split_to_table(message.content, '\\s+')) > 2")
-      .orderBy('word')
+      .orderBy("word")
       .limit(limit)
       .getRawMany();
 

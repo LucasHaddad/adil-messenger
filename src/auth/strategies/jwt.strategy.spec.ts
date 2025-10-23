@@ -1,19 +1,19 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
-import { Repository } from 'typeorm';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { JwtStrategy } from '@/auth/strategies/jwt.strategy';
-import { User } from '@/entities/user.entity';
-import { createMockUser } from '@/test/test-utils';
+import { Test, TestingModule } from "@nestjs/testing";
+import { ExecutionContext, UnauthorizedException } from "@nestjs/common";
+import { Reflector } from "@nestjs/core";
+import { Repository } from "typeorm";
+import { getRepositoryToken } from "@nestjs/typeorm";
+import { JwtStrategy } from "@/auth/strategies/jwt.strategy";
+import { User } from "@/entities/user.entity";
+import { createMockUser } from "@/test/test-utils";
 
-describe('JwtStrategy', () => {
+describe("JwtStrategy", () => {
   let strategy: JwtStrategy;
   let userRepository: jest.Mocked<Repository<User>>;
 
   const mockUser = createMockUser({
-    id: 'user-123',
-    currentSessionId: 'session-123',
+    id: "user-123",
+    currentSessionId: "session-123",
   });
 
   beforeEach(async () => {
@@ -37,12 +37,12 @@ describe('JwtStrategy', () => {
     jest.clearAllMocks();
   });
 
-  describe('validate', () => {
-    it('should return user if valid token and session', async () => {
+  describe("validate", () => {
+    it("should return user if valid token and session", async () => {
       const payload = {
-        sub: 'user-123',
-        email: 'test@example.com',
-        sessionId: 'session-123',
+        sub: "user-123",
+        email: "test@example.com",
+        sessionId: "session-123",
       };
 
       userRepository.findOne.mockResolvedValue(mockUser as any);
@@ -51,18 +51,18 @@ describe('JwtStrategy', () => {
 
       expect(userRepository.findOne).toHaveBeenCalledWith({
         where: {
-          id: 'user-123',
-          currentSessionId: 'session-123',
+          id: "user-123",
+          currentSessionId: "session-123",
         },
       });
       expect(result).toEqual(mockUser);
     });
 
-    it('should throw UnauthorizedException if user not found', async () => {
+    it("should throw UnauthorizedException if user not found", async () => {
       const payload = {
-        sub: 'nonexistent-user',
-        email: 'test@example.com',
-        sessionId: 'session-123',
+        sub: "nonexistent-user",
+        email: "test@example.com",
+        sessionId: "session-123",
       };
 
       userRepository.findOne.mockResolvedValue(null);
@@ -71,15 +71,15 @@ describe('JwtStrategy', () => {
         UnauthorizedException,
       );
       await expect(strategy.validate(payload)).rejects.toThrow(
-        'Invalid token or session expired',
+        "Invalid token or session expired",
       );
     });
 
-    it('should throw UnauthorizedException if session mismatch', async () => {
+    it("should throw UnauthorizedException if session mismatch", async () => {
       const payload = {
-        sub: 'user-123',
-        email: 'test@example.com',
-        sessionId: 'wrong-session',
+        sub: "user-123",
+        email: "test@example.com",
+        sessionId: "wrong-session",
       };
 
       userRepository.findOne.mockResolvedValue(null);

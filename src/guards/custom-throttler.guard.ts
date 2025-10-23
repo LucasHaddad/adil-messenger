@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
-import { ThrottlerGuard } from '@nestjs/throttler';
-import { ExecutionContext } from '@nestjs/common';
+import { Injectable } from "@nestjs/common";
+import { ThrottlerGuard } from "@nestjs/throttler";
+import { ExecutionContext } from "@nestjs/common";
 
 @Injectable()
 export class CustomThrottlerGuard extends ThrottlerGuard {
@@ -20,20 +20,20 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
   ): string {
     const request = context.switchToHttp().getRequest();
     const route = request.route?.path || request.url;
-    
+
     // Create different keys for different route types
-    let routeType = 'default';
-    
-    if (route.includes('/auth/')) {
-      routeType = 'auth';
-    } else if (route.includes('/search/')) {
-      routeType = 'search';
-    } else if (route.includes('/files/upload')) {
-      routeType = 'upload';
-    } else if (request.method === 'GET') {
-      routeType = 'read';
-    } else if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method)) {
-      routeType = 'write';
+    let routeType = "default";
+
+    if (route.includes("/auth/")) {
+      routeType = "auth";
+    } else if (route.includes("/search/")) {
+      routeType = "search";
+    } else if (route.includes("/files/upload")) {
+      routeType = "upload";
+    } else if (request.method === "GET") {
+      routeType = "read";
+    } else if (["POST", "PUT", "PATCH", "DELETE"].includes(request.method)) {
+      routeType = "write";
     }
 
     return `${name}-${routeType}-${suffix}`;

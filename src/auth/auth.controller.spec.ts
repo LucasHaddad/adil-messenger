@@ -1,24 +1,24 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { AuthController } from '@/auth/auth.controller';
-import { AuthService } from '@/auth/auth.service';
-import { LoginDto } from '@/dto/login.dto';
-import { RegisterDto } from '@/dto/register.dto';
-import { ConflictException, UnauthorizedException } from '@nestjs/common';
+import { Test, TestingModule } from "@nestjs/testing";
+import { AuthController } from "@/auth/auth.controller";
+import { AuthService } from "@/auth/auth.service";
+import { LoginDto } from "@/dto/login.dto";
+import { RegisterDto } from "@/dto/register.dto";
+import { ConflictException, UnauthorizedException } from "@nestjs/common";
 
-describe('AuthController', () => {
+describe("AuthController", () => {
   let controller: AuthController;
   let authService: jest.Mocked<AuthService>;
 
   const mockAuthResponse = {
-    accessToken: 'jwt-token',
-    csrfToken: 'csrf-token',
+    accessToken: "jwt-token",
+    csrfToken: "csrf-token",
     user: {
-      id: 'user-123',
-      email: 'test@example.com',
-      username: 'testuser',
-      fullName: 'Test User',
+      id: "user-123",
+      email: "test@example.com",
+      username: "testuser",
+      fullName: "Test User",
     },
-    tokenType: 'Bearer',
+    tokenType: "Bearer",
     expiresIn: 3600,
   };
 
@@ -47,58 +47,58 @@ describe('AuthController', () => {
     jest.clearAllMocks();
   });
 
-  describe('register', () => {
+  describe("register", () => {
     const registerDto: RegisterDto = {
-      email: 'test@example.com',
-      username: 'testuser',
-      password: 'password123',
-      fullName: 'Test User',
+      email: "test@example.com",
+      username: "testuser",
+      password: "password123",
+      fullName: "Test User",
     };
 
-    it('should successfully register a user', async () => {
+    it("should successfully register a user", async () => {
       const mockSession = {};
       authService.register.mockResolvedValue(mockAuthResponse);
 
       const result = await controller.register(registerDto, mockSession);
 
       expect(authService.register).toHaveBeenCalledWith(registerDto);
-      expect(mockSession).toEqual({ csrfToken: 'csrf-token' });
+      expect(mockSession).toEqual({ csrfToken: "csrf-token" });
       expect(result).toEqual(mockAuthResponse);
     });
 
-    it('should propagate ConflictException from service', async () => {
+    it("should propagate ConflictException from service", async () => {
       const mockSession = {};
       authService.register.mockRejectedValue(
-        new ConflictException('Email already registered'),
+        new ConflictException("Email already registered"),
       );
 
-      await expect(controller.register(registerDto, mockSession)).rejects.toThrow(
-        ConflictException,
-      );
+      await expect(
+        controller.register(registerDto, mockSession),
+      ).rejects.toThrow(ConflictException);
     });
   });
 
-  describe('login', () => {
+  describe("login", () => {
     const loginDto: LoginDto = {
-      email: 'test@example.com',
-      password: 'password123',
+      email: "test@example.com",
+      password: "password123",
     };
 
-    it('should successfully login a user', async () => {
+    it("should successfully login a user", async () => {
       const mockSession = {};
       authService.login.mockResolvedValue(mockAuthResponse);
 
       const result = await controller.login(loginDto, mockSession);
 
       expect(authService.login).toHaveBeenCalledWith(loginDto);
-      expect(mockSession).toEqual({ csrfToken: 'csrf-token' });
+      expect(mockSession).toEqual({ csrfToken: "csrf-token" });
       expect(result).toEqual(mockAuthResponse);
     });
 
-    it('should propagate UnauthorizedException from service', async () => {
+    it("should propagate UnauthorizedException from service", async () => {
       const mockSession = {};
       authService.login.mockRejectedValue(
-        new UnauthorizedException('Invalid credentials'),
+        new UnauthorizedException("Invalid credentials"),
       );
 
       await expect(controller.login(loginDto, mockSession)).rejects.toThrow(
@@ -107,45 +107,45 @@ describe('AuthController', () => {
     });
   });
 
-  describe('logout', () => {
-    it('should successfully logout a user', async () => {
-      const mockRequest = { user: { id: 'user-123' } };
-      const mockSession = { csrfToken: 'csrf-token' };
-      const logoutResponse = { message: 'Successfully logged out' };
+  describe("logout", () => {
+    it("should successfully logout a user", async () => {
+      const mockRequest = { user: { id: "user-123" } };
+      const mockSession = { csrfToken: "csrf-token" };
+      const logoutResponse = { message: "Successfully logged out" };
 
       authService.logout.mockResolvedValue(logoutResponse);
 
       const result = await controller.logout(mockRequest, mockSession);
 
-      expect(authService.logout).toHaveBeenCalledWith('user-123');
+      expect(authService.logout).toHaveBeenCalledWith("user-123");
       expect(mockSession.csrfToken).toBeNull();
       expect(result).toEqual(logoutResponse);
     });
   });
 
-  describe('getCsrfToken', () => {
-    it('should generate and return CSRF token', async () => {
+  describe("getCsrfToken", () => {
+    it("should generate and return CSRF token", async () => {
       const mockSession = {};
-      authService.generateCsrfToken.mockResolvedValue('new-csrf-token');
+      authService.generateCsrfToken.mockResolvedValue("new-csrf-token");
 
       const result = await controller.getCsrfToken(mockSession);
 
       expect(authService.generateCsrfToken).toHaveBeenCalled();
-      expect(mockSession).toEqual({ csrfToken: 'new-csrf-token' });
-      expect(result).toEqual({ csrfToken: 'new-csrf-token' });
+      expect(mockSession).toEqual({ csrfToken: "new-csrf-token" });
+      expect(result).toEqual({ csrfToken: "new-csrf-token" });
     });
   });
 
-  describe('getProfile', () => {
-    it('should return user profile without sensitive data', async () => {
+  describe("getProfile", () => {
+    it("should return user profile without sensitive data", async () => {
       const mockRequest = {
         user: {
-          id: 'user-123',
-          email: 'test@example.com',
-          username: 'testuser',
-          fullName: 'Test User',
-          password: 'hashedpassword',
-          currentSessionId: 'session-123',
+          id: "user-123",
+          email: "test@example.com",
+          username: "testuser",
+          fullName: "Test User",
+          password: "hashedpassword",
+          currentSessionId: "session-123",
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -154,29 +154,29 @@ describe('AuthController', () => {
       const result = await controller.getProfile(mockRequest);
 
       expect(result).toEqual({
-        id: 'user-123',
-        email: 'test@example.com',
-        username: 'testuser',
-        fullName: 'Test User',
+        id: "user-123",
+        email: "test@example.com",
+        username: "testuser",
+        fullName: "Test User",
         createdAt: expect.any(Date),
         updatedAt: expect.any(Date),
       });
-      expect(result).not.toHaveProperty('password');
-      expect(result).not.toHaveProperty('currentSessionId');
+      expect(result).not.toHaveProperty("password");
+      expect(result).not.toHaveProperty("currentSessionId");
     });
   });
 
-  describe('refreshToken', () => {
-    it('should refresh tokens for authenticated user', async () => {
-      const mockRequest = { user: { id: 'user-123' } };
+  describe("refreshToken", () => {
+    it("should refresh tokens for authenticated user", async () => {
+      const mockRequest = { user: { id: "user-123" } };
       const mockSession = {};
 
       authService.refreshToken.mockResolvedValue(mockAuthResponse);
 
       const result = await controller.refreshToken(mockRequest, mockSession);
 
-      expect(authService.refreshToken).toHaveBeenCalledWith({ id: 'user-123' });
-      expect(mockSession).toEqual({ csrfToken: 'csrf-token' });
+      expect(authService.refreshToken).toHaveBeenCalledWith({ id: "user-123" });
+      expect(mockSession).toEqual({ csrfToken: "csrf-token" });
       expect(result).toEqual(mockAuthResponse);
     });
   });

@@ -7,15 +7,15 @@ import {
   ManyToOne,
   OneToMany,
   JoinColumn,
-} from 'typeorm';
-import { User } from '@/entities/user.entity';
+} from "typeorm";
+import { User } from "@/entities/user.entity";
 
-@Entity('messages')
+@Entity("messages")
 export class Message {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @Column('text')
+  @Column("text")
   content: string;
 
   @Column({ default: false })
@@ -47,20 +47,20 @@ export class Message {
   updatedAt: Date;
 
   // Foreign Keys
-  @Column('uuid')
+  @Column("uuid")
   authorId: string;
 
-  @Column('uuid', { nullable: true })
+  @Column("uuid", { nullable: true })
   parentMessageId?: string;
 
   // Relationships
   @ManyToOne(() => User, (user) => user.messages, { eager: true })
-  @JoinColumn({ name: 'authorId' })
+  @JoinColumn({ name: "authorId" })
   author: User;
 
   // Self-referencing relationship for replies
   @ManyToOne(() => Message, (message) => message.replies, { nullable: true })
-  @JoinColumn({ name: 'parentMessageId' })
+  @JoinColumn({ name: "parentMessageId" })
   parentMessage?: Message;
 
   @OneToMany(() => Message, (message) => message.parentMessage)
