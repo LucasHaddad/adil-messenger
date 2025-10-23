@@ -1,5 +1,5 @@
-import { Injectable, Logger } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
+import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class SecurityLoggerService {
@@ -14,7 +14,7 @@ export class SecurityLoggerService {
         email,
         ip,
         userAgent,
-        event: "FAILED_LOGIN",
+        event: 'FAILED_LOGIN',
         timestamp: new Date().toISOString(),
       },
     );
@@ -33,7 +33,7 @@ export class SecurityLoggerService {
         email,
         ip,
         userAgent,
-        event: "SUCCESSFUL_LOGIN",
+        event: 'SUCCESSFUL_LOGIN',
         timestamp: new Date().toISOString(),
       },
     );
@@ -44,7 +44,7 @@ export class SecurityLoggerService {
       activity,
       details,
       ip,
-      event: "SUSPICIOUS_ACTIVITY",
+      event: 'SUSPICIOUS_ACTIVITY',
       timestamp: new Date().toISOString(),
     });
   }
@@ -54,12 +54,10 @@ export class SecurityLoggerService {
       resource,
       userId,
       ip,
-      event: "UNAUTHORIZED_ACCESS",
+      event: 'UNAUTHORIZED_ACCESS',
       timestamp: new Date().toISOString(),
     });
   }
-
-
 
   logRateLimitExceeded(ip: string, endpoint: string): void {
     this.logger.warn(
@@ -67,7 +65,7 @@ export class SecurityLoggerService {
       {
         ip,
         endpoint,
-        event: "RATE_LIMIT_EXCEEDED",
+        event: 'RATE_LIMIT_EXCEEDED',
         timestamp: new Date().toISOString(),
       },
     );
@@ -76,29 +74,27 @@ export class SecurityLoggerService {
   logUnauthorizedCORSAttempt(origin: string): void {
     this.logger.warn(`Unauthorized CORS attempt from origin: ${origin}`, {
       origin,
-      event: "UNAUTHORIZED_CORS",
+      event: 'UNAUTHORIZED_CORS',
       timestamp: new Date().toISOString(),
     });
   }
 
-
-
   logSQLInjectionAttempt(query: string, ip: string, endpoint: string): void {
     this.logger.error(`Potential SQL injection attempt from IP: ${ip}`, {
-      query: query.substring(0, 200), // Log first 200 chars only
+      query: query.substring(0, 200),
       ip,
       endpoint,
-      event: "SQL_INJECTION_ATTEMPT",
+      event: 'SQL_INJECTION_ATTEMPT',
       timestamp: new Date().toISOString(),
     });
   }
 
   logXSSAttempt(payload: string, ip: string, endpoint: string): void {
     this.logger.error(`Potential XSS attempt from IP: ${ip}`, {
-      payload: payload.substring(0, 200), // Log first 200 chars only
+      payload: payload.substring(0, 200),
       ip,
       endpoint,
-      event: "XSS_ATTEMPT",
+      event: 'XSS_ATTEMPT',
       timestamp: new Date().toISOString(),
     });
   }
@@ -107,8 +103,8 @@ export class SecurityLoggerService {
     this.logger.error(`CSRF attack attempt from IP: ${ip}`, {
       ip,
       endpoint,
-      providedToken: providedToken ? "PROVIDED" : "MISSING",
-      event: "CSRF_ATTEMPT",
+      providedToken: providedToken ? 'PROVIDED' : 'MISSING',
+      event: 'CSRF_ATTEMPT',
       timestamp: new Date().toISOString(),
     });
   }

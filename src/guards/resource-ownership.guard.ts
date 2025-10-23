@@ -3,16 +3,16 @@ import {
   CanActivate,
   ExecutionContext,
   ForbiddenException,
-} from "@nestjs/common";
-import { Reflector } from "@nestjs/core";
-import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
-import { User } from "@/entities/user.entity";
-import { Message } from "@/entities/message.entity";
-import { SecurityLoggerService } from "@/services/security-logger.service";
+} from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from '@/entities/user.entity';
+import { Message } from '@/entities/message.entity';
+import { SecurityLoggerService } from '@/services/security-logger.service';
 
-export const RESOURCE_OWNER = "resourceOwner";
-export const ResourceOwner = (resourceType: "message" | "user") => {
+export const RESOURCE_OWNER = 'resourceOwner';
+export const ResourceOwner = (resourceType: 'message' | 'user') => {
   return (target: any, key?: string, descriptor?: PropertyDescriptor) => {
     Reflect.defineMetadata(
       RESOURCE_OWNER,
@@ -40,7 +40,7 @@ export class ResourceOwnershipGuard implements CanActivate {
     );
 
     if (!resourceType) {
-      return true; // No resource ownership check required
+      return true;
     }
 
     const request = context.switchToHttp().getRequest();
@@ -53,18 +53,18 @@ export class ResourceOwnershipGuard implements CanActivate {
         undefined,
         request.ip,
       );
-      throw new ForbiddenException("Authentication required");
+      throw new ForbiddenException('Authentication required');
     }
 
     try {
       switch (resourceType) {
-        case "message":
+        case 'message':
           return await this.checkMessageOwnership(
             user.id,
             params.id,
             request.ip,
           );
-        case "user":
+        case 'user':
           return await this.checkUserOwnership(user.id, params.id, request.ip);
         default:
           return true;
@@ -75,7 +75,7 @@ export class ResourceOwnershipGuard implements CanActivate {
         user.id,
         request.ip,
       );
-      throw new ForbiddenException("Access denied");
+      throw new ForbiddenException('Access denied');
     }
   }
 
@@ -86,16 +86,16 @@ export class ResourceOwnershipGuard implements CanActivate {
   ): Promise<boolean> {
     const message = await this.messageRepository.findOne({
       where: { id: messageId },
-      relations: ["author"],
+      relations: ['author'],
     });
 
     if (!message) {
-      throw new ForbiddenException("Message not found");
+      throw new ForbiddenException('Message not found');
     }
 
     if (message.author.id !== userId) {
-      this.securityLogger.logUnauthorizedAccess("message", userId, ip);
-      throw new ForbiddenException("You can only modify your own messages");
+      this.securityLogger.logUnauthorizedAccess('message', userId, ip);
+      throw new ForbiddenException('You can only modify your own messages');
     }
 
     return true;
@@ -107,8 +107,8 @@ export class ResourceOwnershipGuard implements CanActivate {
     ip: string,
   ): Promise<boolean> {
     if (userId !== targetUserId) {
-      this.securityLogger.logUnauthorizedAccess("user profile", userId, ip);
-      throw new ForbiddenException("You can only modify your own profile");
+      this.securityLogger.logUnauthorizedAccess('user profile', userId, ip);
+      throw new ForbiddenException('You can only modify your own profile');
     }
 
     return true;

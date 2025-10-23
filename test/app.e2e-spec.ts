@@ -30,7 +30,7 @@ describe('App E2E Tests', () => {
     }).compile();
 
     app = moduleRef.createNestApplication();
-    
+
     // Apply the same configuration as in main.ts to test pipes and filters
     app.useGlobalPipes(
       new ValidationPipe({

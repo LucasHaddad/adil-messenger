@@ -7,13 +7,13 @@ import {
   OneToMany,
   BeforeInsert,
   BeforeUpdate,
-} from "typeorm";
-import * as bcrypt from "bcryptjs";
-import { Message } from "@/entities/message.entity";
+} from 'typeorm';
+import * as bcrypt from 'bcryptjs';
+import { Message } from '@/entities/message.entity';
 
-@Entity("users")
+@Entity('users')
 export class User {
-  @PrimaryGeneratedColumn("uuid")
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column({ unique: true })
@@ -37,10 +37,9 @@ export class User {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @OneToMany(() => Message, (message) => message.author)
+  @OneToMany(() => Message, message => message.author)
   messages: Message[];
 
-  // Reactions relationship - will be properly typed when Reaction is imported
   reactions?: any[];
 
   @BeforeInsert()

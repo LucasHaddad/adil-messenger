@@ -1,11 +1,11 @@
-import { Test, TestingModule } from "@nestjs/testing";
-import { getRepositoryToken } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
-import { SearchService } from "@/services/search.service";
-import { Message } from "@/entities/message.entity";
-import { MessageSearchDto } from "@/dto/message-search.dto";
+import { Test, TestingModule } from '@nestjs/testing';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { SearchService } from '@/services/search.service';
+import { Message } from '@/entities/message.entity';
+import { MessageSearchDto } from '@/dto/message-search.dto';
 
-describe("SearchService", () => {
+describe('SearchService', () => {
   let service: SearchService;
   let messageRepository: Repository<Message>;
 
@@ -57,24 +57,24 @@ describe("SearchService", () => {
     });
   });
 
-  it("should be defined", () => {
+  it('should be defined', () => {
     expect(service).toBeDefined();
   });
 
-  describe("searchMessages", () => {
-    it("should search messages with query", async () => {
+  describe('searchMessages', () => {
+    it('should search messages with query', async () => {
       const searchDto: MessageSearchDto = {
-        query: "hello world",
+        query: 'hello world',
         limit: 10,
         offset: 0,
       };
 
       const mockMessages = [
         {
-          id: "1",
-          content: "Hello world",
+          id: '1',
+          content: 'Hello world',
           createdAt: new Date(),
-          user: { id: "1", username: "user1", email: "user1@example.com" },
+          user: { id: '1', username: 'user1', email: 'user1@example.com' },
         },
       ];
 
@@ -98,17 +98,17 @@ describe("SearchService", () => {
       });
 
       expect(mockMessageRepository.createQueryBuilder).toHaveBeenCalledWith(
-        "message",
+        'message',
       );
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
         `to_tsvector('english', message.content) @@ plainto_tsquery('english', :query)`,
-        { query: "hello world" },
+        { query: 'hello world' },
       );
     });
 
-    it("should search messages with user filter", async () => {
+    it('should search messages with user filter', async () => {
       const searchDto: MessageSearchDto = {
-        userId: "user-123",
+        userId: 'user-123',
         limit: 10,
         offset: 0,
       };
@@ -123,17 +123,17 @@ describe("SearchService", () => {
       await service.searchMessages(searchDto);
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-        "message.userId = :userId",
+        'message.userId = :userId',
         {
-          userId: "user-123",
+          userId: 'user-123',
         },
       );
     });
 
-    it("should search messages with date range filter", async () => {
+    it('should search messages with date range filter', async () => {
       const searchDto: MessageSearchDto = {
-        dateFrom: "2023-01-01T00:00:00.000Z",
-        dateTo: "2023-12-31T23:59:59.999Z",
+        dateFrom: '2023-01-01T00:00:00.000Z',
+        dateTo: '2023-12-31T23:59:59.999Z',
         limit: 10,
         offset: 0,
       };
@@ -148,20 +148,20 @@ describe("SearchService", () => {
       await service.searchMessages(searchDto);
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-        "message.createdAt >= :dateFrom",
+        'message.createdAt >= :dateFrom',
         {
-          dateFrom: new Date("2023-01-01T00:00:00.000Z"),
+          dateFrom: new Date('2023-01-01T00:00:00.000Z'),
         },
       );
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-        "message.createdAt <= :dateTo",
+        'message.createdAt <= :dateTo',
         {
-          dateTo: new Date("2023-12-31T23:59:59.999Z"),
+          dateTo: new Date('2023-12-31T23:59:59.999Z'),
         },
       );
     });
 
-    it("should apply pagination correctly", async () => {
+    it('should apply pagination correctly', async () => {
       const searchDto: MessageSearchDto = {
         limit: 5,
         offset: 10,
@@ -181,9 +181,9 @@ describe("SearchService", () => {
       expect(result.hasMore).toBe(true);
     });
 
-    it("should order by relevance when query is provided", async () => {
+    it('should order by relevance when query is provided', async () => {
       const searchDto: MessageSearchDto = {
-        query: "test",
+        query: 'test',
         limit: 10,
         offset: 0,
       };
@@ -199,19 +199,19 @@ describe("SearchService", () => {
 
       expect(mockQueryBuilder.orderBy).toHaveBeenCalledWith(
         `ts_rank(to_tsvector('english', message.content), plainto_tsquery('english', :rankQuery))`,
-        "DESC",
+        'DESC',
       );
       expect(mockQueryBuilder.addOrderBy).toHaveBeenCalledWith(
-        "message.createdAt",
-        "DESC",
+        'message.createdAt',
+        'DESC',
       );
       expect(mockQueryBuilder.setParameter).toHaveBeenCalledWith(
-        "rankQuery",
-        "test",
+        'rankQuery',
+        'test',
       );
     });
 
-    it("should order by date when no query is provided", async () => {
+    it('should order by date when no query is provided', async () => {
       const searchDto: MessageSearchDto = {
         limit: 10,
         offset: 0,
@@ -227,64 +227,64 @@ describe("SearchService", () => {
       await service.searchMessages(searchDto);
 
       expect(mockQueryBuilder.orderBy).toHaveBeenCalledWith(
-        "message.createdAt",
-        "DESC",
+        'message.createdAt',
+        'DESC',
       );
     });
   });
 
-  describe("getPopularSearchTerms", () => {
-    it("should return popular search terms", async () => {
+  describe('getPopularSearchTerms', () => {
+    it('should return popular search terms', async () => {
       const result = await service.getPopularSearchTerms(5);
 
-      expect(result).toEqual(["hello", "meeting", "project", "update", "help"]);
+      expect(result).toEqual(['hello', 'meeting', 'project', 'update', 'help']);
       expect(result).toHaveLength(5);
     });
 
-    it("should return default number of terms when no limit specified", async () => {
+    it('should return default number of terms when no limit specified', async () => {
       const result = await service.getPopularSearchTerms();
 
       expect(result).toHaveLength(10);
     });
   });
 
-  describe("getSuggestions", () => {
-    it("should return suggestions for partial query", async () => {
+  describe('getSuggestions', () => {
+    it('should return suggestions for partial query', async () => {
       const mockSuggestions = [
-        { word: "hello" },
-        { word: "help" },
-        { word: "helicopter" },
+        { word: 'hello' },
+        { word: 'help' },
+        { word: 'helicopter' },
       ];
 
       mockQueryBuilder.getRawMany.mockResolvedValue(mockSuggestions);
 
-      const result = await service.getSuggestions("hel", 3);
+      const result = await service.getSuggestions('hel', 3);
 
-      expect(result).toEqual(["hello", "help", "helicopter"]);
+      expect(result).toEqual(['hello', 'help', 'helicopter']);
       expect(mockQueryBuilder.select).toHaveBeenCalledWith(
         "DISTINCT regexp_split_to_table(message.content, '\\s+') AS word",
       );
       expect(mockQueryBuilder.where).toHaveBeenCalledWith(
         "regexp_split_to_table(message.content, '\\s+') ILIKE :query",
-        { query: "hel%" },
+        { query: 'hel%' },
       );
     });
 
-    it("should return empty array for short queries", async () => {
-      const result = await service.getSuggestions("h");
+    it('should return empty array for short queries', async () => {
+      const result = await service.getSuggestions('h');
 
       expect(result).toEqual([]);
     });
 
-    it("should return empty array for empty queries", async () => {
-      const result = await service.getSuggestions("");
+    it('should return empty array for empty queries', async () => {
+      const result = await service.getSuggestions('');
 
       expect(result).toEqual([]);
     });
   });
 
-  describe("createSearchIndex", () => {
-    it("should create search index", async () => {
+  describe('createSearchIndex', () => {
+    it('should create search index', async () => {
       await service.createSearchIndex();
 
       expect(mockMessageRepository.query).toHaveBeenCalledWith(`
@@ -294,8 +294,8 @@ describe("SearchService", () => {
     });
   });
 
-  describe("dropSearchIndex", () => {
-    it("should drop search index", async () => {
+  describe('dropSearchIndex', () => {
+    it('should drop search index', async () => {
       await service.dropSearchIndex();
 
       expect(mockMessageRepository.query).toHaveBeenCalledWith(`

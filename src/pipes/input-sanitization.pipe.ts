@@ -3,8 +3,8 @@ import {
   PipeTransform,
   ArgumentMetadata,
   BadRequestException,
-} from "@nestjs/common";
-import { SecurityLoggerService } from "@/services/security-logger.service";
+} from '@nestjs/common';
+import { SecurityLoggerService } from '@/services/security-logger.service';
 
 @Injectable()
 export class InputSanitizationPipe implements PipeTransform {
@@ -15,27 +15,25 @@ export class InputSanitizationPipe implements PipeTransform {
 
     const sanitizedValue = this.sanitizeInput(value);
 
-    // Check for potential XSS attempts
     if (this.containsPotentialXSS(value)) {
       this.securityLogger.logXSSAttempt(
         JSON.stringify(value),
-        "unknown", // IP would need to be passed from context
-        "input-validation",
+        'unknown',
+        'input-validation',
       );
       throw new BadRequestException(
-        "Input contains potentially dangerous content",
+        'Input contains potentially dangerous content',
       );
     }
 
-    // Check for potential SQL injection attempts
     if (this.containsPotentialSQLInjection(value)) {
       this.securityLogger.logSQLInjectionAttempt(
         JSON.stringify(value),
-        "unknown", // IP would need to be passed from context
-        "input-validation",
+        'unknown',
+        'input-validation',
       );
       throw new BadRequestException(
-        "Input contains potentially dangerous content",
+        'Input contains potentially dangerous content',
       );
     }
 
@@ -43,15 +41,15 @@ export class InputSanitizationPipe implements PipeTransform {
   }
 
   private sanitizeInput(input: any): any {
-    if (typeof input === "string") {
+    if (typeof input === 'string') {
       return this.sanitizeString(input);
     }
 
     if (Array.isArray(input)) {
-      return input.map((item) => this.sanitizeInput(item));
+      return input.map(item => this.sanitizeInput(item));
     }
 
-    if (input && typeof input === "object") {
+    if (input && typeof input === 'object') {
       const sanitized: any = {};
       for (const [key, value] of Object.entries(input)) {
         sanitized[key] = this.sanitizeInput(value);
@@ -63,24 +61,21 @@ export class InputSanitizationPipe implements PipeTransform {
   }
 
   private sanitizeString(str: string): string {
-    if (!str || typeof str !== "string") return str;
+    if (!str || typeof str !== 'string') return str;
 
-    // Remove null bytes
-    str = str.replace(/\0/g, "");
+    str = str.replace(/\0/g, '');
 
-    // Normalize unicode
-    str = str.normalize("NFC");
+    str = str.normalize('NFC');
 
-    // Trim whitespace
     str = str.trim();
 
     return str;
   }
 
   private containsPotentialXSS(input: any): boolean {
-    if (typeof input !== "string") {
-      if (typeof input === "object") {
-        return Object.values(input).some((value) =>
+    if (typeof input !== 'string') {
+      if (typeof input === 'object') {
+        return Object.values(input).some(value =>
           this.containsPotentialXSS(value),
         );
       }
@@ -100,13 +95,13 @@ export class InputSanitizationPipe implements PipeTransform {
       /<svg[\s\S]*?onload[\s\S]*?>/gi,
     ];
 
-    return xssPatterns.some((pattern) => pattern.test(input));
+    return xssPatterns.some(pattern => pattern.test(input));
   }
 
   private containsPotentialSQLInjection(input: any): boolean {
-    if (typeof input !== "string") {
-      if (typeof input === "object") {
-        return Object.values(input).some((value) =>
+    if (typeof input !== 'string') {
+      if (typeof input === 'object') {
+        return Object.values(input).some(value =>
           this.containsPotentialSQLInjection(value),
         );
       }
@@ -114,7 +109,7 @@ export class InputSanitizationPipe implements PipeTransform {
     }
 
     const sqlPatterns = [
-      /['"]/gi, // Single or double quotes
+      /['"]/gi,
       /union\s+select/gi,
       /insert\s+into/gi,
       /delete\s+from/gi,
@@ -124,12 +119,12 @@ export class InputSanitizationPipe implements PipeTransform {
       /alter\s+table/gi,
       /exec\s+/gi,
       /execute\s+/gi,
-      /--/gi, // SQL comments
-      /\/\*/gi, // Block comments
+      /--/gi,
+      /\/\*/gi,
       /\*\//gi,
     ];
 
     const lowerInput = input.toLowerCase();
-    return sqlPatterns.some((pattern) => pattern.test(lowerInput));
+    return sqlPatterns.some(pattern => pattern.test(lowerInput));
   }
 }

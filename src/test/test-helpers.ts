@@ -1,13 +1,13 @@
-import { Test, TestingModule } from "@nestjs/testing";
+import { Test, TestingModule } from '@nestjs/testing';
 import {
   NotFoundException,
   ConflictException,
   ForbiddenException,
-} from "@nestjs/common";
-import { getRepositoryToken } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
-import { User, Message } from "@/entities";
-import { createMockRepository } from "@/test/test-utils";
+} from '@nestjs/common';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User, Message } from '@/entities';
+import { createMockRepository } from '@/test/test-utils';
 
 /**
  * Integration test helper for creating a test module with real database
@@ -15,22 +15,14 @@ import { createMockRepository } from "@/test/test-utils";
  */
 export class TestDatabaseHelper {
   static async createTestingModule(entities: any[] = [User, Message]) {
-    return Test.createTestingModule({
-      // In a real integration test, you would configure a test database here
-      // For now, this serves as a template for future integration tests
-    });
+    return Test.createTestingModule({});
   }
 
   static async cleanupDatabase(moduleRef: TestingModule) {
-    // Clean up test data after integration tests
     const userRepo = moduleRef.get<Repository<User>>(getRepositoryToken(User));
     const messageRepo = moduleRef.get<Repository<Message>>(
       getRepositoryToken(Message),
     );
-
-    // In integration tests, you would clean up test data here
-    // await messageRepo.delete({});
-    // await userRepo.delete({});
   }
 }
 
@@ -45,7 +37,7 @@ export const customMatchers = {
 
     return {
       message: () =>
-        `expected ${received} ${pass ? "not " : ""}to be a valid UUID`,
+        `expected ${received} ${pass ? 'not ' : ''}to be a valid UUID`,
       pass,
     };
   },
@@ -57,48 +49,48 @@ export const customMatchers = {
 
     return {
       message: () =>
-        `expected ${received} ${pass ? "not " : ""}to be within ${withinMs}ms of now`,
+        `expected ${received} ${pass ? 'not ' : ''}to be within ${withinMs}ms of now`,
       pass,
     };
   },
 
   toHaveValidMessageStructure: (received: any) => {
     const requiredFields = [
-      "id",
-      "content",
-      "isEdited",
-      "isDeleted",
-      "createdAt",
-      "updatedAt",
-      "authorId",
+      'id',
+      'content',
+      'isEdited',
+      'isDeleted',
+      'createdAt',
+      'updatedAt',
+      'authorId',
     ];
-    const hasAllFields = requiredFields.every((field) =>
+    const hasAllFields = requiredFields.every(field =>
       received.hasOwnProperty(field),
     );
 
     return {
       message: () =>
-        `expected message ${hasAllFields ? "not " : ""}to have all required fields: ${requiredFields.join(", ")}`,
+        `expected message ${hasAllFields ? 'not ' : ''}to have all required fields: ${requiredFields.join(', ')}`,
       pass: hasAllFields,
     };
   },
 
   toHaveValidUserStructure: (received: any) => {
     const requiredFields = [
-      "id",
-      "username",
-      "email",
-      "fullName",
-      "createdAt",
-      "updatedAt",
+      'id',
+      'username',
+      'email',
+      'fullName',
+      'createdAt',
+      'updatedAt',
     ];
-    const hasAllFields = requiredFields.every((field) =>
+    const hasAllFields = requiredFields.every(field =>
       received.hasOwnProperty(field),
     );
 
     return {
       message: () =>
-        `expected user ${hasAllFields ? "not " : ""}to have all required fields: ${requiredFields.join(", ")}`,
+        `expected user ${hasAllFields ? 'not ' : ''}to have all required fields: ${requiredFields.join(', ')}`,
       pass: hasAllFields,
     };
   },
@@ -140,7 +132,7 @@ export class PerformanceTestUtils {
     const start = process.hrtime.bigint();
     const result = await fn();
     const end = process.hrtime.bigint();
-    const duration = Number(end - start) / 1_000_000; // Convert to milliseconds
+    const duration = Number(end - start) / 1_000_000;
 
     return { result, duration };
   }
@@ -156,29 +148,29 @@ export class PerformanceTestUtils {
 export class TestDataGenerator {
   static generateRandomString(length: number = 10): string {
     const chars =
-      "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    let result = "";
+      'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = '';
     for (let i = 0; i < length; i++) {
       result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     return result;
   }
 
-  static generateRandomEmail(domain: string = "example.com"): string {
+  static generateRandomEmail(domain: string = 'example.com'): string {
     const username = this.generateRandomString(8);
     return `${username}@${domain}`;
   }
 
   static generateLongString(length: number): string {
-    return "a".repeat(length);
+    return 'a'.repeat(length);
   }
 
   static generateSpecialCharacterString(): string {
-    return "!@#$%^&*()_+-=[]{}|;:,.<>?";
+    return '!@#$%^&*()_+-=[]{}|;:,.<>?';
   }
 
   static generateUnicodeString(): string {
-    return "测试用户名åäöüñ🚀👍";
+    return '测试用户名åäöüñ🚀👍';
   }
 
   static generateMaliciousString(): string {
@@ -191,11 +183,11 @@ export class TestDataGenerator {
 
   static generateEdgeCaseStrings(): string[] {
     return [
-      "", // Empty string
-      " ", // Single space
-      "   ", // Multiple spaces
-      "\n\t\r", // Whitespace characters
-      this.generateLongString(10000), // Very long string
+      '',
+      ' ',
+      '   ',
+      '\n\t\r',
+      this.generateLongString(10000),
       this.generateSpecialCharacterString(),
       this.generateUnicodeString(),
       this.generateMaliciousString(),
@@ -244,8 +236,8 @@ export class MockResponseBuilder {
     return {
       statusCode,
       timestamp: new Date().toISOString(),
-      path: "/test",
-      method: "GET",
+      path: '/test',
+      method: 'GET',
       error,
       message,
     };
@@ -286,7 +278,7 @@ export class AsyncTestUtils {
   }
 
   static delay(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 }
 
@@ -327,7 +319,7 @@ export class RepositoryMockBuilder<T> {
   }
 
   throwsError(error: Error) {
-    Object.values(this.mock).forEach((method) => {
+    Object.values(this.mock).forEach(method => {
       if (jest.isMockFunction(method)) {
         method.mockRejectedValue(error);
       }
@@ -340,7 +332,6 @@ export class RepositoryMockBuilder<T> {
   }
 }
 
-// Export all utilities
 export {
   createMockRepository,
   createMockUser,
@@ -350,4 +341,4 @@ export {
   testMessage1,
   testMessage2,
   TEST_ERRORS,
-} from "@/test/test-utils";
+} from '@/test/test-utils';

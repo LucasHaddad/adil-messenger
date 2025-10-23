@@ -1,24 +1,22 @@
-import { NestFactory } from "@nestjs/core";
-import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
-import { ValidationPipe } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import * as session from "express-session";
-import * as cookieParser from "cookie-parser";
-import helmet from "helmet";
-import { rateLimit } from "express-rate-limit";
-import slowDown from "express-slow-down";
-import { AppModule } from "@/app.module";
-import { GlobalExceptionFilter } from "@/filters/global-exception.filter";
-import { SecurityLoggerService } from "@/services/security-logger.service";
+import { NestFactory } from '@nestjs/core';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import * as session from 'express-session';
+import * as cookieParser from 'cookie-parser';
+import helmet from 'helmet';
+import { rateLimit } from 'express-rate-limit';
+import slowDown from 'express-slow-down';
+import { AppModule } from '@/app.module';
+import { GlobalExceptionFilter } from '@/filters/global-exception.filter';
+import { SecurityLoggerService } from '@/services/security-logger.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Get configuration service
   const configService = app.get(ConfigService);
   const securityLogger = app.get(SecurityLoggerService);
 
-  // Security headers with Helmet
   app.use(
     helmet({
       contentSecurityPolicy: {
@@ -26,7 +24,7 @@ async function bootstrap() {
           defaultSrc: ["'self'"],
           styleSrc: ["'self'", "'unsafe-inline'"],
           scriptSrc: ["'self'"],
-          imgSrc: ["'self'", "data:", "https:"],
+          imgSrc: ["'self'", 'data:', 'https:'],
           connectSrc: ["'self'"],
           fontSrc: ["'self'"],
           objectSrc: ["'none'"],
@@ -34,7 +32,7 @@ async function bootstrap() {
           frameSrc: ["'none'"],
         },
       },
-      crossOriginEmbedderPolicy: false, // Allow Swagger UI
+      crossOriginEmbedderPolicy: false,
       hsts: {
         maxAge: 31536000,
         includeSubDomains: true,
@@ -43,44 +41,40 @@ async function bootstrap() {
     }),
   );
 
-  // Rate limiting for general API requests
   const generalLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 1000, // Limit each IP to 1000 requests per windowMs
-    message: "Too many requests from this IP, please try again later.",
+    windowMs: 15 * 60 * 1000,
+    max: 1000,
+    message: 'Too many requests from this IP, please try again later.',
     standardHeaders: true,
     legacyHeaders: false,
     handler: (req, res) => {
       securityLogger.logRateLimitExceeded(req.ip, req.url);
       res.status(429).json({
-        error: "Too Many Requests",
-        message: "Rate limit exceeded",
+        error: 'Too Many Requests',
+        message: 'Rate limit exceeded',
         retryAfter: Math.ceil(15 * 60),
       });
     },
   });
 
-  // Slow down middleware for additional protection
   const speedLimiter = slowDown({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    delayAfter: 100, // Allow 100 requests per 15 minutes at full speed
-    delayMs: 500, // Add 500ms delay per request after delayAfter
+    windowMs: 15 * 60 * 1000,
+    delayAfter: 100,
+    delayMs: 500,
   });
 
   app.use(generalLimiter);
   app.use(speedLimiter);
 
-  // Cookie parser middleware
   app.use(cookieParser());
 
-  // Session middleware for CSRF token storage with enhanced security
-  const sessionSecret = configService.get<string>("SESSION_SECRET");
+  const sessionSecret = configService.get<string>('SESSION_SECRET');
   if (
     !sessionSecret ||
-    sessionSecret === "fallback-session-secret-change-in-production"
+    sessionSecret === 'fallback-session-secret-change-in-production'
   ) {
     throw new Error(
-      "SESSION_SECRET environment variable must be set to a secure random string",
+      'SESSION_SECRET environment variable must be set to a secure random string',
     );
   }
 
@@ -89,28 +83,26 @@ async function bootstrap() {
       secret: sessionSecret,
       resave: false,
       saveUninitialized: false,
-      name: "sessionId", // Don't use default session name
+      name: 'sessionId',
       cookie: {
-        secure: configService.get("NODE_ENV") === "production", // HTTPS only in production
+        secure: configService.get('NODE_ENV') === 'production',
         httpOnly: true,
-        maxAge: 2 * 60 * 60 * 1000, // Reduced to 2 hours for better security
-        sameSite: "strict", // CSRF protection
+        maxAge: 2 * 60 * 60 * 1000,
+        sameSite: 'strict',
       },
     }),
   );
 
-  // Enable CORS with restricted origins
   const allowedOrigins = configService
-    .get<string>("ALLOWED_ORIGINS")
-    ?.split(",") || [
-    "http://localhost:3000",
-    "http://localhost:3001",
-    "http://127.0.0.1:3000",
+    .get<string>('ALLOWED_ORIGINS')
+    ?.split(',') || [
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'http://127.0.0.1:3000',
   ];
 
   app.enableCors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin) return callback(null, true);
 
       if (allowedOrigins.includes(origin)) {
@@ -118,20 +110,19 @@ async function bootstrap() {
       }
 
       securityLogger.logUnauthorizedCORSAttempt(origin);
-      return callback(new Error("Not allowed by CORS"));
+      return callback(new Error('Not allowed by CORS'));
     },
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: [
-      "Content-Type",
-      "Authorization",
-      "X-CSRF-Token",
-      "X-Requested-With",
+      'Content-Type',
+      'Authorization',
+      'X-CSRF-Token',
+      'X-Requested-With',
     ],
     credentials: true,
-    maxAge: 86400, // Cache preflight for 24 hours
+    maxAge: 86400,
   });
 
-  // Global validation pipe
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -140,67 +131,63 @@ async function bootstrap() {
     }),
   );
 
-  // Global exception filter
   app.useGlobalFilters(new GlobalExceptionFilter());
 
-  // API prefix
-  app.setGlobalPrefix("api/v1");
+  app.setGlobalPrefix('api/v1');
 
-  // Swagger documentation
   const config = new DocumentBuilder()
-    .setTitle("Adil Messenger API")
+    .setTitle('Adil Messenger API')
     .setDescription(
-      "A comprehensive chat system API built with NestJS, TypeScript, and PostgreSQL",
+      'A comprehensive chat system API built with NestJS, TypeScript, and PostgreSQL',
     )
-    .setVersion("1.0")
-    .addTag("Authentication", "User authentication and authorization endpoints")
-    .addTag("Users", "User management endpoints")
-    .addTag("Messages", "Message and reply management endpoints")
+    .setVersion('1.0')
+    .addTag('Authentication', 'User authentication and authorization endpoints')
+    .addTag('Users', 'User management endpoints')
+    .addTag('Messages', 'Message and reply management endpoints')
     .addBearerAuth(
       {
-        type: "http",
-        scheme: "bearer",
-        bearerFormat: "JWT",
-        name: "JWT",
-        description: "Enter JWT token",
-        in: "header",
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'JWT',
+        description: 'Enter JWT token',
+        in: 'header',
       },
-      "JWT-auth", // This name here is important for matching up with @ApiBearerAuth() in your controller!
+      'JWT-auth',
     )
     .addApiKey(
       {
-        type: "apiKey",
-        name: "X-CSRF-Token",
-        in: "header",
-        description: "CSRF token for protection against CSRF attacks",
+        type: 'apiKey',
+        name: 'X-CSRF-Token',
+        in: 'header',
+        description: 'CSRF token for protection against CSRF attacks',
       },
-      "CSRF-token",
+      'CSRF-token',
     )
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup("api/docs", app, document, {
-    customSiteTitle: "Adil Messenger API Documentation",
-    customCss: ".swagger-ui .topbar { display: none }",
+  SwaggerModule.setup('api/docs', app, document, {
+    customSiteTitle: 'Adil Messenger API Documentation',
+    customCss: '.swagger-ui .topbar { display: none }',
     swaggerOptions: {
       persistAuthorization: true,
       securityDefinitions: {
         Bearer: {
-          type: "apiKey",
-          name: "Authorization",
-          in: "header",
+          type: 'apiKey',
+          name: 'Authorization',
+          in: 'header',
         },
-        "CSRF-Token": {
-          type: "apiKey",
-          name: "X-CSRF-Token",
-          in: "header",
+        'CSRF-Token': {
+          type: 'apiKey',
+          name: 'X-CSRF-Token',
+          in: 'header',
         },
       },
     },
   });
 
-  // Get port from environment or default to 3000
-  const port = configService.get<number>("PORT") || 3000;
+  const port = configService.get<number>('PORT') || 3000;
 
   await app.listen(port);
   console.log(`🚀 Application is running on: http://localhost:${port}`);

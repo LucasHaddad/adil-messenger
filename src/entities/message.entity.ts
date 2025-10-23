@@ -7,15 +7,15 @@ import {
   ManyToOne,
   OneToMany,
   JoinColumn,
-} from "typeorm";
-import { User } from "@/entities/user.entity";
+} from 'typeorm';
+import { User } from '@/entities/user.entity';
 
-@Entity("messages")
+@Entity('messages')
 export class Message {
-  @PrimaryGeneratedColumn("uuid")
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column("text")
+  @Column('text')
   content: string;
 
   @Column({ default: false })
@@ -27,7 +27,6 @@ export class Message {
   @Column({ nullable: true })
   deletedAt?: Date;
 
-  // File attachment fields
   @Column({ nullable: true })
   attachmentUrl?: string;
 
@@ -35,10 +34,10 @@ export class Message {
   attachmentName?: string;
 
   @Column({ nullable: true })
-  attachmentType?: string; // mime type
+  attachmentType?: string;
 
   @Column({ nullable: true })
-  attachmentSize?: number; // in bytes
+  attachmentSize?: number;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -46,29 +45,24 @@ export class Message {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  // Foreign Keys
-  @Column("uuid")
+  @Column('uuid')
   authorId: string;
 
-  @Column("uuid", { nullable: true })
+  @Column('uuid', { nullable: true })
   parentMessageId?: string;
 
-  // Relationships
-  @ManyToOne(() => User, (user) => user.messages, { eager: true })
-  @JoinColumn({ name: "authorId" })
+  @ManyToOne(() => User, user => user.messages, { eager: true })
+  @JoinColumn({ name: 'authorId' })
   author: User;
 
-  // Self-referencing relationship for replies
-  @ManyToOne(() => Message, (message) => message.replies, { nullable: true })
-  @JoinColumn({ name: "parentMessageId" })
+  @ManyToOne(() => Message, message => message.replies, { nullable: true })
+  @JoinColumn({ name: 'parentMessageId' })
   parentMessage?: Message;
 
-  @OneToMany(() => Message, (message) => message.parentMessage)
+  @OneToMany(() => Message, message => message.parentMessage)
   replies: Message[];
 
-  // Reactions relationship - will be properly typed when Reaction is imported
   reactions?: any[];
 
-  // Virtual property to count replies
   replyCount?: number;
 }

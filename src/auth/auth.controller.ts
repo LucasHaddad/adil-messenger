@@ -8,47 +8,47 @@ import {
   Session,
   HttpCode,
   HttpStatus,
-} from "@nestjs/common";
+} from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
   ApiHeader,
-} from "@nestjs/swagger";
-import { Throttle } from "@nestjs/throttler";
-import { AuthService } from "@/auth/auth.service";
-import { JwtAuthGuard } from "@/auth/guards/jwt-auth.guard";
-import { CsrfGuard } from "@/auth/guards/csrf.guard";
-import { Public, SkipCsrf } from "@/auth/decorators/public.decorator";
-import { LoginDto } from "@/dto/login.dto";
-import { RegisterDto } from "@/dto/register.dto";
+} from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
+import { AuthService } from '@/auth/auth.service';
+import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
+import { CsrfGuard } from '@/auth/guards/csrf.guard';
+import { Public, SkipCsrf } from '@/auth/decorators/public.decorator';
+import { LoginDto } from '@/dto/login.dto';
+import { RegisterDto } from '@/dto/register.dto';
 import {
   AuthResponseDto,
   CsrfTokenDto,
   LogoutResponseDto,
-} from "@/dto/auth-response.dto";
+} from '@/dto/auth-response.dto';
 
-@ApiTags("Authentication")
-@Controller("auth")
+@ApiTags('Authentication')
+@Controller('auth')
 @UseGuards(CsrfGuard)
-@Throttle({ auth: { limit: 5, ttl: 60000 } }) // 5 auth requests per minute
+@Throttle({ auth: { limit: 5, ttl: 60000 } })
 export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Public()
   @SkipCsrf()
-  @Post("register")
+  @Post('register')
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: "Register a new user" })
+  @ApiOperation({ summary: 'Register a new user' })
   @ApiResponse({
     status: 201,
-    description: "User successfully registered",
+    description: 'User successfully registered',
     type: AuthResponseDto,
   })
   @ApiResponse({
     status: 409,
-    description: "Email or username already exists",
+    description: 'Email or username already exists',
   })
   async register(
     @Body() registerDto: RegisterDto,
@@ -61,17 +61,17 @@ export class AuthController {
 
   @Public()
   @SkipCsrf()
-  @Post("login")
+  @Post('login')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Login user" })
+  @ApiOperation({ summary: 'Login user' })
   @ApiResponse({
     status: 200,
-    description: "User successfully logged in",
+    description: 'User successfully logged in',
     type: AuthResponseDto,
   })
   @ApiResponse({
     status: 401,
-    description: "Invalid credentials",
+    description: 'Invalid credentials',
   })
   async login(
     @Body() loginDto: LoginDto,
@@ -83,18 +83,18 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post("logout")
+  @Post('logout')
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
   @ApiHeader({
-    name: "X-CSRF-Token",
-    description: "CSRF token for security",
+    name: 'X-CSRF-Token',
+    description: 'CSRF token for security',
     required: true,
   })
-  @ApiOperation({ summary: "Logout user" })
+  @ApiOperation({ summary: 'Logout user' })
   @ApiResponse({
     status: 200,
-    description: "User successfully logged out",
+    description: 'User successfully logged out',
     type: LogoutResponseDto,
   })
   async logout(
@@ -107,11 +107,11 @@ export class AuthController {
 
   @Public()
   @SkipCsrf()
-  @Get("csrf-token")
-  @ApiOperation({ summary: "Get CSRF token" })
+  @Get('csrf-token')
+  @ApiOperation({ summary: 'Get CSRF token' })
   @ApiResponse({
     status: 200,
-    description: "CSRF token generated",
+    description: 'CSRF token generated',
     type: CsrfTokenDto,
   })
   async getCsrfToken(
@@ -123,12 +123,12 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get("me")
+  @Get('me')
   @ApiBearerAuth()
-  @ApiOperation({ summary: "Get current user profile" })
+  @ApiOperation({ summary: 'Get current user profile' })
   @ApiResponse({
     status: 200,
-    description: "Current user information",
+    description: 'Current user information',
   })
   async getProfile(@Request() req) {
     const { password, currentSessionId, ...userProfile } = req.user;
@@ -136,17 +136,17 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post("refresh")
+  @Post('refresh')
   @ApiBearerAuth()
   @ApiHeader({
-    name: "X-CSRF-Token",
-    description: "CSRF token for security",
+    name: 'X-CSRF-Token',
+    description: 'CSRF token for security',
     required: true,
   })
-  @ApiOperation({ summary: "Refresh access token" })
+  @ApiOperation({ summary: 'Refresh access token' })
   @ApiResponse({
     status: 200,
-    description: "Token refreshed successfully",
+    description: 'Token refreshed successfully',
     type: AuthResponseDto,
   })
   async refreshToken(

@@ -2,17 +2,17 @@ import {
   Injectable,
   UnauthorizedException,
   ConflictException,
-} from "@nestjs/common";
-import { JwtService } from "@nestjs/jwt";
-import { Repository } from "typeorm";
-import { InjectRepository } from "@nestjs/typeorm";
-import { randomBytes } from "crypto";
-import { User } from "@/entities/user.entity";
-import { LoginDto } from "@/dto/login.dto";
-import { RegisterDto } from "@/dto/register.dto";
-import { AuthResponseDto } from "@/dto/auth-response.dto";
-import { JwtPayload } from "@/auth/strategies/jwt.strategy";
-import { SecurityLoggerService } from "@/services/security-logger.service";
+} from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { randomBytes } from 'crypto';
+import { User } from '@/entities/user.entity';
+import { LoginDto } from '@/dto/login.dto';
+import { RegisterDto } from '@/dto/register.dto';
+import { AuthResponseDto } from '@/dto/auth-response.dto';
+import { JwtPayload } from '@/auth/strategies/jwt.strategy';
+import { SecurityLoggerService } from '@/services/security-logger.service';
 
 @Injectable()
 export class AuthService {
@@ -36,31 +36,28 @@ export class AuthService {
   async register(registerDto: RegisterDto): Promise<AuthResponseDto> {
     const { email, username, password, fullName } = registerDto;
 
-    // Check if user already exists
     const existingUser = await this.userRepository.findOne({
       where: [{ email }, { username }],
     });
 
     if (existingUser) {
       if (existingUser.email === email) {
-        throw new ConflictException("Email already registered");
+        throw new ConflictException('Email already registered');
       }
       if (existingUser.username === username) {
-        throw new ConflictException("Username already taken");
+        throw new ConflictException('Username already taken');
       }
     }
 
-    // Create new user
     const user = this.userRepository.create({
       email,
       username,
       fullName,
-      password, // Will be hashed in the entity
+      password,
     });
 
     await this.userRepository.save(user);
 
-    // Generate session and tokens
     return this.generateAuthResponse(user);
   }
 
@@ -74,14 +71,14 @@ export class AuthService {
     const user = await this.validateUser(email, password);
 
     if (!user) {
-      this.securityLogger.logFailedLogin(email, ip || "unknown", userAgent);
-      throw new UnauthorizedException("Invalid credentials");
+      this.securityLogger.logFailedLogin(email, ip || 'unknown', userAgent);
+      throw new UnauthorizedException('Invalid credentials');
     }
 
     this.securityLogger.logSuccessfulLogin(
       user.id,
       user.email,
-      ip || "unknown",
+      ip || 'unknown',
       userAgent,
     );
     return this.generateAuthResponse(user);
@@ -89,18 +86,17 @@ export class AuthService {
 
   async logout(userId: string): Promise<{ message: string }> {
     await this.userRepository.update(userId, { currentSessionId: null });
-    return { message: "Successfully logged out" };
+    return { message: 'Successfully logged out' };
   }
 
   async generateCsrfToken(): Promise<string> {
-    return randomBytes(32).toString("hex");
+    return randomBytes(32).toString('hex');
   }
 
   private async generateAuthResponse(user: User): Promise<AuthResponseDto> {
-    const sessionId = randomBytes(32).toString("hex");
+    const sessionId = randomBytes(32).toString('hex');
     const csrfToken = await this.generateCsrfToken();
 
-    // Update user's current session
     await this.userRepository.update(user.id, { currentSessionId: sessionId });
 
     const payload: JwtPayload = {
@@ -120,8 +116,8 @@ export class AuthService {
         username: user.username,
         fullName: user.fullName,
       },
-      tokenType: "Bearer",
-      expiresIn: 3600, // 1 hour
+      tokenType: 'Bearer',
+      expiresIn: 3600,
     };
   }
 

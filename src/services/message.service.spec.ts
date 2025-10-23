@@ -1,10 +1,10 @@
-import { Test, TestingModule } from "@nestjs/testing";
-import { getRepositoryToken } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
-import { NotFoundException, ForbiddenException } from "@nestjs/common";
-import { MessageService } from "@/services/message.service";
-import { Message, User } from "@/entities";
-import { CreateMessageDto, UpdateMessageDto } from "@/dto";
+import { Test, TestingModule } from '@nestjs/testing';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { NotFoundException, ForbiddenException } from '@nestjs/common';
+import { MessageService } from '@/services/message.service';
+import { Message, User } from '@/entities';
+import { CreateMessageDto, UpdateMessageDto } from '@/dto';
 import {
   createMockRepository,
   createMockMessage,
@@ -14,9 +14,9 @@ import {
   testMessage1,
   testMessage2,
   TEST_ERRORS,
-} from "@/test/test-utils";
+} from '@/test/test-utils';
 
-describe("MessageService", () => {
+describe('MessageService', () => {
   let service: MessageService;
   let messageRepository: jest.Mocked<Repository<Message>>;
   let userRepository: jest.Mocked<Repository<User>>;
@@ -37,7 +37,7 @@ describe("MessageService", () => {
           useValue: mockUserRepository,
         },
         {
-          provide: "ChatGateway",
+          provide: 'ChatGateway',
           useValue: {
             broadcastMessageUpdate: jest.fn(),
             broadcastMessageDelete: jest.fn(),
@@ -55,13 +55,13 @@ describe("MessageService", () => {
     jest.clearAllMocks();
   });
 
-  describe("createMessage", () => {
+  describe('createMessage', () => {
     const createMessageDto: CreateMessageDto = {
-      content: "Test message content",
+      content: 'Test message content',
       authorId: testUser1.id,
     };
 
-    it("should create a top-level message successfully", async () => {
+    it('should create a top-level message successfully', async () => {
       const expectedMessage = createMockMessage(createMessageDto);
 
       userRepository.findOne.mockResolvedValue(testUser1);
@@ -82,7 +82,7 @@ describe("MessageService", () => {
       expect(result).toEqual(expectedMessage);
     });
 
-    it("should create a reply message successfully", async () => {
+    it('should create a reply message successfully', async () => {
       const replyDto: CreateMessageDto = {
         ...createMessageDto,
         parentMessageId: testMessage1.id,
@@ -110,21 +110,21 @@ describe("MessageService", () => {
       expect(result).toEqual(expectedReply);
     });
 
-    it("should throw NotFoundException when author not found", async () => {
+    it('should throw NotFoundException when author not found', async () => {
       userRepository.findOne.mockResolvedValue(null);
 
       await expect(service.createMessage(createMessageDto)).rejects.toThrow(
-        new NotFoundException("Author not found"),
+        new NotFoundException('Author not found'),
       );
 
       expect(messageRepository.create).not.toHaveBeenCalled();
       expect(messageRepository.save).not.toHaveBeenCalled();
     });
 
-    it("should throw NotFoundException when parent message not found", async () => {
+    it('should throw NotFoundException when parent message not found', async () => {
       const replyDto: CreateMessageDto = {
         ...createMessageDto,
-        parentMessageId: "nonexistent-parent-id",
+        parentMessageId: 'nonexistent-parent-id',
       };
 
       userRepository.findOne.mockResolvedValue(testUser1);
@@ -138,7 +138,7 @@ describe("MessageService", () => {
       expect(messageRepository.save).not.toHaveBeenCalled();
     });
 
-    it("should throw NotFoundException when parent message is deleted", async () => {
+    it('should throw NotFoundException when parent message is deleted', async () => {
       const replyDto: CreateMessageDto = {
         ...createMessageDto,
         parentMessageId: testMessage1.id,
@@ -157,8 +157,8 @@ describe("MessageService", () => {
     });
   });
 
-  describe("getMessages", () => {
-    it("should return paginated top-level messages with reply counts", async () => {
+  describe('getMessages', () => {
+    it('should return paginated top-level messages with reply counts', async () => {
       const messages = [testMessage1];
       const totalCount = 1;
       const replyCount = 2;
@@ -170,8 +170,8 @@ describe("MessageService", () => {
 
       expect(messageRepository.findAndCount).toHaveBeenCalledWith({
         where: { isDeleted: false, parentMessageId: null },
-        relations: ["author"],
-        order: { createdAt: "DESC" },
+        relations: ['author'],
+        order: { createdAt: 'DESC' },
         skip: 0,
         take: 20,
       });
@@ -186,7 +186,7 @@ describe("MessageService", () => {
       });
     });
 
-    it("should return replies when parentMessageId is provided", async () => {
+    it('should return replies when parentMessageId is provided', async () => {
       const replies = [testMessage2];
       const totalCount = 1;
 
@@ -197,8 +197,8 @@ describe("MessageService", () => {
 
       expect(messageRepository.findAndCount).toHaveBeenCalledWith({
         where: { isDeleted: false, parentMessageId: testMessage1.id },
-        relations: ["author"],
-        order: { createdAt: "DESC" },
+        relations: ['author'],
+        order: { createdAt: 'DESC' },
         skip: 0,
         take: 10,
       });
@@ -210,7 +210,7 @@ describe("MessageService", () => {
       });
     });
 
-    it("should handle pagination correctly", async () => {
+    it('should handle pagination correctly', async () => {
       const page = 2;
       const limit = 5;
       const expectedSkip = (page - 1) * limit;
@@ -227,7 +227,7 @@ describe("MessageService", () => {
       );
     });
 
-    it("should return empty result when no messages found", async () => {
+    it('should return empty result when no messages found', async () => {
       messageRepository.findAndCount.mockResolvedValue([[], 0]);
 
       const result = await service.getMessages();
@@ -241,8 +241,8 @@ describe("MessageService", () => {
     });
   });
 
-  describe("getMessageById", () => {
-    it("should return message with reply count when found", async () => {
+  describe('getMessageById', () => {
+    it('should return message with reply count when found', async () => {
       const replyCount = 3;
       messageRepository.findOne.mockResolvedValue(testMessage1);
       messageRepository.count.mockResolvedValue(replyCount);
@@ -251,7 +251,7 @@ describe("MessageService", () => {
 
       expect(messageRepository.findOne).toHaveBeenCalledWith({
         where: { id: testMessage1.id, isDeleted: false },
-        relations: ["author"],
+        relations: ['author'],
       });
       expect(messageRepository.count).toHaveBeenCalledWith({
         where: { parentMessageId: testMessage1.id, isDeleted: false },
@@ -259,17 +259,17 @@ describe("MessageService", () => {
       expect(result).toEqual({ ...testMessage1, replyCount });
     });
 
-    it("should throw NotFoundException when message not found", async () => {
+    it('should throw NotFoundException when message not found', async () => {
       messageRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.getMessageById("nonexistent-id")).rejects.toThrow(
+      await expect(service.getMessageById('nonexistent-id')).rejects.toThrow(
         new NotFoundException(TEST_ERRORS.MESSAGE_NOT_FOUND),
       );
 
       expect(messageRepository.count).not.toHaveBeenCalled();
     });
 
-    it("should throw NotFoundException when message is deleted", async () => {
+    it('should throw NotFoundException when message is deleted', async () => {
       messageRepository.findOne.mockResolvedValue(null); // deleted messages won't be found
 
       await expect(service.getMessageById(testMessage1.id)).rejects.toThrow(
@@ -278,8 +278,8 @@ describe("MessageService", () => {
     });
   });
 
-  describe("getReplies", () => {
-    it("should return replies for existing message", async () => {
+  describe('getReplies', () => {
+    it('should return replies for existing message', async () => {
       const replies = [testMessage2];
       const totalCount = 1;
 
@@ -300,21 +300,21 @@ describe("MessageService", () => {
       });
     });
 
-    it("should throw NotFoundException when parent message not found", async () => {
+    it('should throw NotFoundException when parent message not found', async () => {
       messageRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.getReplies("nonexistent-id")).rejects.toThrow(
-        new NotFoundException("Parent message not found"),
+      await expect(service.getReplies('nonexistent-id')).rejects.toThrow(
+        new NotFoundException('Parent message not found'),
       );
     });
   });
 
-  describe("updateMessage", () => {
+  describe('updateMessage', () => {
     const updateMessageDto: UpdateMessageDto = {
-      content: "Updated message content",
+      content: 'Updated message content',
     };
 
-    it("should update message successfully by author", async () => {
+    it('should update message successfully by author', async () => {
       const updatedMessage = {
         ...testMessage1,
         ...updateMessageDto,
@@ -333,7 +333,7 @@ describe("MessageService", () => {
 
       expect(messageRepository.findOne).toHaveBeenCalledWith({
         where: { id: testMessage1.id, isDeleted: false },
-        relations: ["author"],
+        relations: ['author'],
       });
       expect(messageRepository.save).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -344,17 +344,17 @@ describe("MessageService", () => {
       expect(result).toEqual({ ...updatedMessage, replyCount: 0 });
     });
 
-    it("should throw NotFoundException when message not found", async () => {
+    it('should throw NotFoundException when message not found', async () => {
       messageRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        service.updateMessage("nonexistent-id", updateMessageDto, testUser1.id),
+        service.updateMessage('nonexistent-id', updateMessageDto, testUser1.id),
       ).rejects.toThrow(new NotFoundException(TEST_ERRORS.MESSAGE_NOT_FOUND));
 
       expect(messageRepository.save).not.toHaveBeenCalled();
     });
 
-    it("should throw ForbiddenException when user is not the author", async () => {
+    it('should throw ForbiddenException when user is not the author', async () => {
       messageRepository.findOne.mockResolvedValue(testMessage1);
 
       await expect(
@@ -364,8 +364,8 @@ describe("MessageService", () => {
       expect(messageRepository.save).not.toHaveBeenCalled();
     });
 
-    it("should handle database save errors", async () => {
-      const saveError = new Error("Save failed");
+    it('should handle database save errors', async () => {
+      const saveError = new Error('Save failed');
 
       messageRepository.findOne.mockResolvedValue(testMessage1);
       messageRepository.save.mockRejectedValue(saveError);
@@ -376,8 +376,8 @@ describe("MessageService", () => {
     });
   });
 
-  describe("deleteMessage", () => {
-    it("should soft delete message successfully by author", async () => {
+  describe('deleteMessage', () => {
+    it('should soft delete message successfully by author', async () => {
       messageRepository.findOne.mockResolvedValue(testMessage1);
       messageRepository.save.mockResolvedValue({
         ...testMessage1,
@@ -398,17 +398,17 @@ describe("MessageService", () => {
       );
     });
 
-    it("should throw NotFoundException when message not found", async () => {
+    it('should throw NotFoundException when message not found', async () => {
       messageRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        service.deleteMessage("nonexistent-id", testUser1.id),
+        service.deleteMessage('nonexistent-id', testUser1.id),
       ).rejects.toThrow(new NotFoundException(TEST_ERRORS.MESSAGE_NOT_FOUND));
 
       expect(messageRepository.save).not.toHaveBeenCalled();
     });
 
-    it("should throw ForbiddenException when user is not the author", async () => {
+    it('should throw ForbiddenException when user is not the author', async () => {
       messageRepository.findOne.mockResolvedValue(testMessage1);
 
       await expect(
@@ -419,8 +419,8 @@ describe("MessageService", () => {
     });
   });
 
-  describe("getConversationThread", () => {
-    it("should return message with all replies", async () => {
+  describe('getConversationThread', () => {
+    it('should return message with all replies', async () => {
       const replies = [testMessage2];
 
       // Mock getMessageById call
@@ -436,12 +436,12 @@ describe("MessageService", () => {
 
       expect(messageRepository.findOne).toHaveBeenCalledWith({
         where: { id: testMessage1.id, isDeleted: false },
-        relations: ["author"],
+        relations: ['author'],
       });
       expect(messageRepository.find).toHaveBeenCalledWith({
         where: { parentMessageId: testMessage1.id, isDeleted: false },
-        relations: ["author"],
-        order: { createdAt: "ASC" },
+        relations: ['author'],
+        order: { createdAt: 'ASC' },
       });
       expect(result).toEqual({
         ...testMessage1,
@@ -450,20 +450,20 @@ describe("MessageService", () => {
       });
     });
 
-    it("should throw NotFoundException when message not found", async () => {
+    it('should throw NotFoundException when message not found', async () => {
       messageRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        service.getConversationThread("nonexistent-id"),
+        service.getConversationThread('nonexistent-id'),
       ).rejects.toThrow(new NotFoundException(TEST_ERRORS.MESSAGE_NOT_FOUND));
     });
   });
 
   // Edge cases and integration scenarios
-  describe("Edge Cases", () => {
-    it("should handle empty content in createMessage", async () => {
+  describe('Edge Cases', () => {
+    it('should handle empty content in createMessage', async () => {
       const emptyContentDto: CreateMessageDto = {
-        content: "",
+        content: '',
         authorId: testUser1.id,
       };
       const expectedMessage = createMockMessage(emptyContentDto);
@@ -477,8 +477,8 @@ describe("MessageService", () => {
       expect(result).toEqual(expectedMessage);
     });
 
-    it("should handle very long content in createMessage", async () => {
-      const longContent = "a".repeat(2000);
+    it('should handle very long content in createMessage', async () => {
+      const longContent = 'a'.repeat(2000);
       const longContentDto: CreateMessageDto = {
         content: longContent,
         authorId: testUser1.id,
@@ -494,7 +494,7 @@ describe("MessageService", () => {
       expect(result.content).toBe(longContent);
     });
 
-    it("should handle null/undefined values gracefully", async () => {
+    it('should handle null/undefined values gracefully', async () => {
       messageRepository.findOne.mockResolvedValue(null);
 
       await expect(service.getMessageById(null as any)).rejects.toThrow(
@@ -506,14 +506,14 @@ describe("MessageService", () => {
       );
     });
 
-    it("should handle database connection errors", async () => {
-      const dbError = new Error("Database connection lost");
+    it('should handle database connection errors', async () => {
+      const dbError = new Error('Database connection lost');
       messageRepository.findAndCount.mockRejectedValue(dbError);
 
       await expect(service.getMessages()).rejects.toThrow(dbError);
     });
 
-    it("should handle large page numbers", async () => {
+    it('should handle large page numbers', async () => {
       const largePage = 999999;
       const limit = 20;
 
@@ -530,18 +530,18 @@ describe("MessageService", () => {
       expect(result.messages).toEqual([]);
     });
 
-    it("should handle concurrent updates gracefully", async () => {
-      const updateDto: UpdateMessageDto = { content: "Concurrent update" };
+    it('should handle concurrent updates gracefully', async () => {
+      const updateDto: UpdateMessageDto = { content: 'Concurrent update' };
 
       // Simulate a message that exists when found but fails to save due to concurrent modification
       messageRepository.findOne.mockResolvedValue(testMessage1);
       messageRepository.save.mockRejectedValue(
-        new Error("Concurrent modification"),
+        new Error('Concurrent modification'),
       );
 
       await expect(
         service.updateMessage(testMessage1.id, updateDto, testUser1.id),
-      ).rejects.toThrow("Concurrent modification");
+      ).rejects.toThrow('Concurrent modification');
     });
   });
 });

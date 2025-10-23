@@ -1,18 +1,18 @@
-import { Test, TestingModule } from "@nestjs/testing";
-import { ValidationPipe, BadRequestException } from "@nestjs/common";
-import { GlobalExceptionFilter } from "@/filters/global-exception.filter";
-import { ArgumentMetadata } from "@nestjs/common";
-import { CreateUserDto } from "@/dto/create-user.dto";
-import { CreateMessageDto } from "@/dto/create-message.dto";
-import { UserModule } from "@/modules/user.module";
-import { MessageModule } from "@/modules/message.module";
-import { UserService } from "@/services/user.service";
-import { MessageService } from "@/services/message.service";
-import { TypeOrmModule } from "@nestjs/typeorm";
-import { User, Message } from "@/entities";
+import { Test, TestingModule } from '@nestjs/testing';
+import { ValidationPipe, BadRequestException } from '@nestjs/common';
+import { GlobalExceptionFilter } from '@/filters/global-exception.filter';
+import { ArgumentMetadata } from '@nestjs/common';
+import { CreateUserDto } from '@/dto/create-user.dto';
+import { CreateMessageDto } from '@/dto/create-message.dto';
+import { UserModule } from '@/modules/user.module';
+import { MessageModule } from '@/modules/message.module';
+import { UserService } from '@/services/user.service';
+import { MessageService } from '@/services/message.service';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { User, Message } from '@/entities';
 
-describe("Integration Tests - Pipes, Filters, and Modules", () => {
-  describe("ValidationPipe", () => {
+describe('Integration Tests - Pipes, Filters, and Modules', () => {
+  describe('ValidationPipe', () => {
     let pipe: ValidationPipe;
 
     beforeEach(() => {
@@ -23,38 +23,38 @@ describe("Integration Tests - Pipes, Filters, and Modules", () => {
       });
     });
 
-    it("should be defined", () => {
+    it('should be defined', () => {
       expect(pipe).toBeDefined();
     });
 
-    it("should validate CreateUserDto correctly", async () => {
+    it('should validate CreateUserDto correctly', async () => {
       const validDto = {
-        username: "testuser",
-        email: "test@example.com",
-        fullName: "Test User",
+        username: 'testuser',
+        email: 'test@example.com',
+        fullName: 'Test User',
       };
 
       const metadata: ArgumentMetadata = {
-        type: "body",
+        type: 'body',
         metatype: CreateUserDto,
-        data: "",
+        data: '',
       };
 
       const result = await pipe.transform(validDto, metadata);
       expect(result).toEqual(validDto);
     });
 
-    it("should reject invalid CreateUserDto", async () => {
+    it('should reject invalid CreateUserDto', async () => {
       const invalidDto = {
-        username: "",
-        email: "invalid-email",
-        fullName: "",
+        username: '',
+        email: 'invalid-email',
+        fullName: '',
       };
 
       const metadata: ArgumentMetadata = {
-        type: "body",
+        type: 'body',
         metatype: CreateUserDto,
-        data: "",
+        data: '',
       };
 
       await expect(pipe.transform(invalidDto, metadata)).rejects.toThrow(
@@ -62,32 +62,32 @@ describe("Integration Tests - Pipes, Filters, and Modules", () => {
       );
     });
 
-    it("should validate CreateMessageDto correctly", async () => {
+    it('should validate CreateMessageDto correctly', async () => {
       const validDto = {
-        content: "Test message content",
-        authorId: "123e4567-e89b-12d3-a456-426614174000",
+        content: 'Test message content',
+        authorId: '123e4567-e89b-12d3-a456-426614174000',
       };
 
       const metadata: ArgumentMetadata = {
-        type: "body",
+        type: 'body',
         metatype: CreateMessageDto,
-        data: "",
+        data: '',
       };
 
       const result = await pipe.transform(validDto, metadata);
       expect(result).toEqual(validDto);
     });
 
-    it("should reject CreateMessageDto with empty content", async () => {
+    it('should reject CreateMessageDto with empty content', async () => {
       const invalidDto = {
-        content: "",
-        authorId: "123e4567-e89b-12d3-a456-426614174000",
+        content: '',
+        authorId: '123e4567-e89b-12d3-a456-426614174000',
       };
 
       const metadata: ArgumentMetadata = {
-        type: "body",
+        type: 'body',
         metatype: CreateMessageDto,
-        data: "",
+        data: '',
       };
 
       await expect(pipe.transform(invalidDto, metadata)).rejects.toThrow(
@@ -95,19 +95,19 @@ describe("Integration Tests - Pipes, Filters, and Modules", () => {
       );
     });
 
-    it("should remove non-whitelisted properties", async () => {
+    it('should remove non-whitelisted properties', async () => {
       const dtoWithExtraProps = {
-        username: "testuser",
-        email: "test@example.com",
-        fullName: "Test User",
-        hackerField: "malicious data",
-        anotherField: "more data",
+        username: 'testuser',
+        email: 'test@example.com',
+        fullName: 'Test User',
+        hackerField: 'malicious data',
+        anotherField: 'more data',
       };
 
       const metadata: ArgumentMetadata = {
-        type: "body",
+        type: 'body',
         metatype: CreateUserDto,
-        data: "",
+        data: '',
       };
 
       await expect(pipe.transform(dtoWithExtraProps, metadata)).rejects.toThrow(
@@ -115,17 +115,17 @@ describe("Integration Tests - Pipes, Filters, and Modules", () => {
       );
     });
 
-    it("should transform data types correctly", async () => {
+    it('should transform data types correctly', async () => {
       const dtoWithStringNumbers = {
-        username: "testuser",
-        email: "test@example.com",
-        fullName: "Test User",
+        username: 'testuser',
+        email: 'test@example.com',
+        fullName: 'Test User',
       };
 
       const metadata: ArgumentMetadata = {
-        type: "body",
+        type: 'body',
         metatype: CreateUserDto,
-        data: "",
+        data: '',
       };
 
       const result = await pipe.transform(dtoWithStringNumbers, metadata);
@@ -133,7 +133,7 @@ describe("Integration Tests - Pipes, Filters, and Modules", () => {
     });
   });
 
-  describe("GlobalExceptionFilter", () => {
+  describe('GlobalExceptionFilter', () => {
     let filter: GlobalExceptionFilter;
 
     beforeEach(() => {
@@ -158,13 +158,13 @@ describe("Integration Tests - Pipes, Filters, and Modules", () => {
       } as any;
     };
 
-    it("should be defined", () => {
+    it('should be defined', () => {
       expect(filter).toBeDefined();
     });
 
-    it("should handle BadRequestException correctly", () => {
-      const exception = new BadRequestException("Validation failed");
-      const mockExecutionContext = createMockExecutionContext("GET", "/test");
+    it('should handle BadRequestException correctly', () => {
+      const exception = new BadRequestException('Validation failed');
+      const mockExecutionContext = createMockExecutionContext('GET', '/test');
       const mockResponse = mockExecutionContext.getResponse();
 
       filter.catch(exception, mockExecutionContext);
@@ -172,17 +172,17 @@ describe("Integration Tests - Pipes, Filters, and Modules", () => {
       expect(mockResponse.status).toHaveBeenCalledWith(400);
       expect(mockResponse.json).toHaveBeenCalledWith({
         statusCode: 400,
-        message: "Validation failed",
-        error: "Bad Request",
-        path: "/test",
-        method: "GET",
+        message: 'Validation failed',
+        error: 'Bad Request',
+        path: '/test',
+        method: 'GET',
         timestamp: expect.any(String),
       });
     });
 
-    it("should handle generic exceptions", () => {
-      const exception = new Error("Generic error");
-      const mockExecutionContext = createMockExecutionContext("GET", "/test");
+    it('should handle generic exceptions', () => {
+      const exception = new Error('Generic error');
+      const mockExecutionContext = createMockExecutionContext('GET', '/test');
       const mockResponse = mockExecutionContext.getResponse();
 
       filter.catch(exception, mockExecutionContext);
@@ -190,17 +190,17 @@ describe("Integration Tests - Pipes, Filters, and Modules", () => {
       expect(mockResponse.status).toHaveBeenCalledWith(500);
       expect(mockResponse.json).toHaveBeenCalledWith({
         statusCode: 500,
-        message: "Generic error",
-        error: "Internal Server Error",
-        path: "/test",
-        method: "GET",
+        message: 'Generic error',
+        error: 'Internal Server Error',
+        path: '/test',
+        method: 'GET',
         timestamp: expect.any(String),
       });
     });
 
-    it("should handle exceptions with custom messages", () => {
-      const exception = new BadRequestException("Custom validation error");
-      const mockExecutionContext = createMockExecutionContext("GET", "/test");
+    it('should handle exceptions with custom messages', () => {
+      const exception = new BadRequestException('Custom validation error');
+      const mockExecutionContext = createMockExecutionContext('GET', '/test');
       const mockResponse = mockExecutionContext.getResponse();
 
       filter.catch(exception, mockExecutionContext);
@@ -208,30 +208,30 @@ describe("Integration Tests - Pipes, Filters, and Modules", () => {
       expect(mockResponse.status).toHaveBeenCalledWith(400);
       expect(mockResponse.json).toHaveBeenCalledWith({
         statusCode: 400,
-        message: "Custom validation error",
-        error: "Bad Request", // NestJS uses standard HTTP error text
-        path: "/test",
-        method: "GET",
+        message: 'Custom validation error',
+        error: 'Bad Request', // NestJS uses standard HTTP error text
+        path: '/test',
+        method: 'GET',
         timestamp: expect.any(String),
       });
     });
   });
 
-  describe("Module Integration", () => {
-    it("should have module classes defined", () => {
+  describe('Module Integration', () => {
+    it('should have module classes defined', () => {
       expect(UserModule).toBeDefined();
       expect(MessageModule).toBeDefined();
     });
 
-    it("should be able to import modules for testing", () => {
+    it('should be able to import modules for testing', () => {
       // Simple test to verify modules can be imported
-      expect(typeof UserModule).toBe("function");
-      expect(typeof MessageModule).toBe("function");
+      expect(typeof UserModule).toBe('function');
+      expect(typeof MessageModule).toBe('function');
     });
   });
 
-  describe("Pipe and Filter Integration", () => {
-    it("should work together - pipe validates, filter handles errors", async () => {
+  describe('Pipe and Filter Integration', () => {
+    it('should work together - pipe validates, filter handles errors', async () => {
       const pipe = new ValidationPipe({
         whitelist: true,
         forbidNonWhitelisted: true,
@@ -241,21 +241,21 @@ describe("Integration Tests - Pipes, Filters, and Modules", () => {
       const filter = new GlobalExceptionFilter();
 
       const invalidDto = {
-        username: "",
-        email: "invalid-email",
-        fullName: "",
-        hackerField: "malicious",
+        username: '',
+        email: 'invalid-email',
+        fullName: '',
+        hackerField: 'malicious',
       };
 
       const metadata: ArgumentMetadata = {
-        type: "body",
+        type: 'body',
         metatype: CreateUserDto,
-        data: "",
+        data: '',
       };
 
       try {
         await pipe.transform(invalidDto, metadata);
-        fail("Should have thrown an exception");
+        fail('Should have thrown an exception');
       } catch (exception) {
         expect(exception).toBeInstanceOf(BadRequestException);
 
@@ -265,7 +265,7 @@ describe("Integration Tests - Pipes, Filters, and Modules", () => {
           json: jest.fn().mockReturnThis(),
         };
 
-        const mockRequest = { url: "/test", method: "POST" };
+        const mockRequest = { url: '/test', method: 'POST' };
 
         const mockArgumentsHost = {
           switchToHttp: jest.fn().mockReturnValue({
@@ -285,10 +285,10 @@ describe("Integration Tests - Pipes, Filters, and Modules", () => {
         expect(mockResponse.json).toHaveBeenCalledWith({
           statusCode: 400,
           message: expect.any(Array), // ValidationPipe returns array of errors
-          error: "Bad Request",
+          error: 'Bad Request',
           timestamp: expect.any(String),
-          path: "/test",
-          method: "POST", // Include method from request
+          path: '/test',
+          method: 'POST', // Include method from request
         });
       }
     });

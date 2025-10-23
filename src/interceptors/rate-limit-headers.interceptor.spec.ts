@@ -1,9 +1,9 @@
-import { Test, TestingModule } from "@nestjs/testing";
-import { ExecutionContext, CallHandler } from "@nestjs/common";
-import { RateLimitHeadersInterceptor } from "@/interceptors/rate-limit-headers.interceptor";
-import { of } from "rxjs";
+import { Test, TestingModule } from '@nestjs/testing';
+import { ExecutionContext, CallHandler } from '@nestjs/common';
+import { RateLimitHeadersInterceptor } from '@/interceptors/rate-limit-headers.interceptor';
+import { of } from 'rxjs';
 
-describe("RateLimitHeadersInterceptor", () => {
+describe('RateLimitHeadersInterceptor', () => {
   let interceptor: RateLimitHeadersInterceptor;
   let mockResponse: any;
   let mockRequest: any;
@@ -33,7 +33,7 @@ describe("RateLimitHeadersInterceptor", () => {
     } as ExecutionContext;
 
     mockCallHandler = {
-      handle: () => of("test response"),
+      handle: () => of('test response'),
     };
   });
 
@@ -41,11 +41,11 @@ describe("RateLimitHeadersInterceptor", () => {
     jest.clearAllMocks();
   });
 
-  it("should be defined", () => {
+  it('should be defined', () => {
     expect(interceptor).toBeDefined();
   });
 
-  it("should add rate limit headers when rateLimit data exists", (done) => {
+  it('should add rate limit headers when rateLimit data exists', done => {
     mockRequest.rateLimit = {
       limit: 100,
       remaining: 95,
@@ -56,26 +56,26 @@ describe("RateLimitHeadersInterceptor", () => {
 
     result$.subscribe(() => {
       expect(mockResponse.setHeader).toHaveBeenCalledWith(
-        "X-RateLimit-Limit",
+        'X-RateLimit-Limit',
         100,
       );
       expect(mockResponse.setHeader).toHaveBeenCalledWith(
-        "X-RateLimit-Remaining",
+        'X-RateLimit-Remaining',
         95,
       );
       expect(mockResponse.setHeader).toHaveBeenCalledWith(
-        "X-RateLimit-Reset",
+        'X-RateLimit-Reset',
         mockRequest.rateLimit.resetTime,
       );
       expect(mockResponse.setHeader).not.toHaveBeenCalledWith(
-        "Retry-After",
+        'Retry-After',
         expect.anything(),
       );
       done();
     });
   });
 
-  it("should add Retry-After header when rate limit exceeded", (done) => {
+  it('should add Retry-After header when rate limit exceeded', done => {
     const resetTime = Date.now() + 30000; // 30 seconds in the future
     mockRequest.rateLimit = {
       limit: 100,
@@ -87,29 +87,29 @@ describe("RateLimitHeadersInterceptor", () => {
 
     result$.subscribe(() => {
       expect(mockResponse.setHeader).toHaveBeenCalledWith(
-        "X-RateLimit-Limit",
+        'X-RateLimit-Limit',
         100,
       );
       expect(mockResponse.setHeader).toHaveBeenCalledWith(
-        "X-RateLimit-Remaining",
+        'X-RateLimit-Remaining',
         0,
       );
       expect(mockResponse.setHeader).toHaveBeenCalledWith(
-        "X-RateLimit-Reset",
+        'X-RateLimit-Reset',
         resetTime,
       );
 
       // Should set Retry-After header with seconds until reset
       const expectedRetryAfter = Math.ceil((resetTime - Date.now()) / 1000);
       expect(mockResponse.setHeader).toHaveBeenCalledWith(
-        "Retry-After",
+        'Retry-After',
         expectedRetryAfter,
       );
       done();
     });
   });
 
-  it("should not add headers when rateLimit data does not exist", (done) => {
+  it('should not add headers when rateLimit data does not exist', done => {
     // mockRequest.rateLimit is undefined
 
     const result$ = interceptor.intercept(mockContext, mockCallHandler);
@@ -120,7 +120,7 @@ describe("RateLimitHeadersInterceptor", () => {
     });
   });
 
-  it("should handle zero remaining correctly", (done) => {
+  it('should handle zero remaining correctly', done => {
     const resetTime = Date.now() + 45000;
     mockRequest.rateLimit = {
       limit: 50,
@@ -132,20 +132,20 @@ describe("RateLimitHeadersInterceptor", () => {
 
     result$.subscribe(() => {
       expect(mockResponse.setHeader).toHaveBeenCalledWith(
-        "X-RateLimit-Remaining",
+        'X-RateLimit-Remaining',
         0,
       );
 
       const expectedRetryAfter = Math.ceil((resetTime - Date.now()) / 1000);
       expect(mockResponse.setHeader).toHaveBeenCalledWith(
-        "Retry-After",
+        'Retry-After',
         expectedRetryAfter,
       );
       done();
     });
   });
 
-  it("should pass through the original response", (done) => {
+  it('should pass through the original response', done => {
     mockRequest.rateLimit = {
       limit: 100,
       remaining: 95,
@@ -154,13 +154,13 @@ describe("RateLimitHeadersInterceptor", () => {
 
     const result$ = interceptor.intercept(mockContext, mockCallHandler);
 
-    result$.subscribe((response) => {
-      expect(response).toBe("test response");
+    result$.subscribe(response => {
+      expect(response).toBe('test response');
       done();
     });
   });
 
-  it("should handle edge case where resetTime is in the past", (done) => {
+  it('should handle edge case where resetTime is in the past', done => {
     const resetTime = Date.now() - 1000; // 1 second in the past
     mockRequest.rateLimit = {
       limit: 100,
@@ -174,7 +174,7 @@ describe("RateLimitHeadersInterceptor", () => {
       // Should still set headers but Retry-After should be 0 or 1
       const expectedRetryAfter = Math.ceil((resetTime - Date.now()) / 1000);
       expect(mockResponse.setHeader).toHaveBeenCalledWith(
-        "Retry-After",
+        'Retry-After',
         expectedRetryAfter,
       );
       done();

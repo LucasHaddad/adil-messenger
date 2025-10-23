@@ -1,15 +1,15 @@
-import { Test, TestingModule } from "@nestjs/testing";
-import { UserController } from "@/controllers/user.controller";
-import { UserService } from "@/services/user.service";
+import { Test, TestingModule } from '@nestjs/testing';
+import { UserController } from '@/controllers/user.controller';
+import { UserService } from '@/services/user.service';
 import {
   testUser1,
   testUser2,
   TEST_ERRORS,
   createMockUser,
-} from "@/test/test-utils";
-import { NotFoundException } from "@nestjs/common";
+} from '@/test/test-utils';
+import { NotFoundException } from '@nestjs/common';
 
-describe("UserController", () => {
+describe('UserController', () => {
   let controller: UserController;
   let userService: jest.Mocked<UserService>;
 
@@ -38,8 +38,8 @@ describe("UserController", () => {
     jest.clearAllMocks();
   });
 
-  describe("getUsers", () => {
-    it("should return all users successfully", async () => {
+  describe('getUsers', () => {
+    it('should return all users successfully', async () => {
       const users = [testUser1, testUser2];
       userService.getUsers.mockResolvedValue(users);
 
@@ -49,7 +49,7 @@ describe("UserController", () => {
       expect(result).toEqual(users);
     });
 
-    it("should return empty array when no users exist", async () => {
+    it('should return empty array when no users exist', async () => {
       userService.getUsers.mockResolvedValue([]);
 
       const result = await controller.getUsers();
@@ -57,16 +57,16 @@ describe("UserController", () => {
       expect(result).toEqual([]);
     });
 
-    it("should handle service errors", async () => {
-      const error = new Error("Database error");
+    it('should handle service errors', async () => {
+      const error = new Error('Database error');
       userService.getUsers.mockRejectedValue(error);
 
       await expect(controller.getUsers()).rejects.toThrow(error);
     });
   });
 
-  describe("getUserById", () => {
-    it("should return user by ID successfully", async () => {
+  describe('getUserById', () => {
+    it('should return user by ID successfully', async () => {
       userService.getUserById.mockResolvedValue(testUser1);
 
       const result = await controller.getUserById(testUser1.id);
@@ -75,17 +75,17 @@ describe("UserController", () => {
       expect(result).toEqual(testUser1);
     });
 
-    it("should propagate NotFoundException from service", async () => {
+    it('should propagate NotFoundException from service', async () => {
       const error = new NotFoundException(TEST_ERRORS.USER_NOT_FOUND);
       userService.getUserById.mockRejectedValue(error);
 
-      await expect(controller.getUserById("nonexistent-id")).rejects.toThrow(
+      await expect(controller.getUserById('nonexistent-id')).rejects.toThrow(
         error,
       );
     });
 
-    it("should handle database errors", async () => {
-      const dbError = new Error("Database connection lost");
+    it('should handle database errors', async () => {
+      const dbError = new Error('Database connection lost');
       userService.getUserById.mockRejectedValue(dbError);
 
       await expect(controller.getUserById(testUser1.id)).rejects.toThrow(
@@ -94,8 +94,8 @@ describe("UserController", () => {
     });
   });
 
-  describe("getUserByUsername", () => {
-    it("should return user by username successfully", async () => {
+  describe('getUserByUsername', () => {
+    it('should return user by username successfully', async () => {
       userService.getUserByUsername.mockResolvedValue(testUser1);
 
       const result = await controller.getUserByUsername(testUser1.username);
@@ -106,17 +106,17 @@ describe("UserController", () => {
       expect(result).toEqual(testUser1);
     });
 
-    it("should propagate NotFoundException from service", async () => {
+    it('should propagate NotFoundException from service', async () => {
       const error = new NotFoundException(TEST_ERRORS.USER_NOT_FOUND);
       userService.getUserByUsername.mockRejectedValue(error);
 
-      await expect(controller.getUserByUsername("nonexistent")).rejects.toThrow(
+      await expect(controller.getUserByUsername('nonexistent')).rejects.toThrow(
         error,
       );
     });
 
-    it("should handle special characters in username", async () => {
-      const specialUsername = "user@#$%";
+    it('should handle special characters in username', async () => {
+      const specialUsername = 'user@#$%';
       const userWithSpecialChars = createMockUser({
         ...testUser1,
         username: specialUsername,
@@ -131,29 +131,29 @@ describe("UserController", () => {
       expect(result).toEqual(userWithSpecialChars);
     });
 
-    it("should handle empty username", async () => {
+    it('should handle empty username', async () => {
       const error = new NotFoundException(TEST_ERRORS.USER_NOT_FOUND);
       userService.getUserByUsername.mockRejectedValue(error);
 
-      await expect(controller.getUserByUsername("")).rejects.toThrow(error);
-      expect(userService.getUserByUsername).toHaveBeenCalledWith("");
+      await expect(controller.getUserByUsername('')).rejects.toThrow(error);
+      expect(userService.getUserByUsername).toHaveBeenCalledWith('');
     });
   });
 
   // Edge cases and error handling
-  describe("Edge Cases", () => {
-    it("should handle invalid UUID format in getUserById", async () => {
+  describe('Edge Cases', () => {
+    it('should handle invalid UUID format in getUserById', async () => {
       // Note: In a real application, this would be caught by the ParseUUIDPipe
       // but here we're testing the controller logic directly
-      const invalidId = "invalid-uuid";
-      const error = new Error("Invalid UUID format");
+      const invalidId = 'invalid-uuid';
+      const error = new Error('Invalid UUID format');
       userService.getUserById.mockRejectedValue(error);
 
       await expect(controller.getUserById(invalidId)).rejects.toThrow(error);
     });
 
-    it("should handle null/undefined parameters gracefully", async () => {
-      const error = new Error("Invalid parameter");
+    it('should handle null/undefined parameters gracefully', async () => {
+      const error = new Error('Invalid parameter');
       userService.getUserById.mockRejectedValue(error);
 
       await expect(controller.getUserById(null as any)).rejects.toThrow(error);
@@ -162,15 +162,15 @@ describe("UserController", () => {
       );
     });
 
-    it("should handle service timeout errors", async () => {
-      const timeoutError = new Error("Request timeout");
+    it('should handle service timeout errors', async () => {
+      const timeoutError = new Error('Request timeout');
       userService.getUsers.mockRejectedValue(timeoutError);
 
       await expect(controller.getUsers()).rejects.toThrow(timeoutError);
     });
 
-    it("should handle very long usernames", async () => {
-      const longUsername = "a".repeat(1000);
+    it('should handle very long usernames', async () => {
+      const longUsername = 'a'.repeat(1000);
       const error = new NotFoundException(TEST_ERRORS.USER_NOT_FOUND);
       userService.getUserByUsername.mockRejectedValue(error);
 
@@ -180,8 +180,8 @@ describe("UserController", () => {
       expect(userService.getUserByUsername).toHaveBeenCalledWith(longUsername);
     });
 
-    it("should handle Unicode characters in username", async () => {
-      const unicodeUsername = "用户名测试";
+    it('should handle Unicode characters in username', async () => {
+      const unicodeUsername = '用户名测试';
       const unicodeUser = createMockUser({
         ...testUser1,
         username: unicodeUsername,

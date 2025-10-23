@@ -1,8 +1,8 @@
-import { Injectable, BadRequestException } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import * as path from "path";
-import * as fs from "fs/promises";
-import { v4 as uuidv4 } from "uuid";
+import { Injectable, BadRequestException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import * as path from 'path';
+import * as fs from 'fs/promises';
+import { v4 as uuidv4 } from 'uuid';
 
 export interface UploadedFile {
   originalname: string;
@@ -22,22 +22,22 @@ export interface FileUploadResult {
 @Injectable()
 export class FileUploadService {
   private readonly uploadDir: string;
-  private readonly maxFileSize: number = 10 * 1024 * 1024; // 10MB
+  private readonly maxFileSize: number = 10 * 1024 * 1024;
   private readonly allowedMimeTypes: string[] = [
-    "image/jpeg",
-    "image/png",
-    "image/gif",
-    "image/webp",
-    "application/pdf",
-    "text/plain",
-    "application/msword",
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    "application/vnd.ms-excel",
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    'image/jpeg',
+    'image/png',
+    'image/gif',
+    'image/webp',
+    'application/pdf',
+    'text/plain',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   ];
 
   constructor(private configService: ConfigService) {
-    this.uploadDir = this.configService.get<string>("UPLOAD_DIR", "./uploads");
+    this.uploadDir = this.configService.get<string>('UPLOAD_DIR', './uploads');
     this.ensureUploadDirExists();
   }
 
@@ -50,30 +50,25 @@ export class FileUploadService {
   }
 
   async uploadFile(file: UploadedFile): Promise<FileUploadResult> {
-    // Validate file size
     if (file.size > this.maxFileSize) {
       throw new BadRequestException(
         `File size exceeds maximum allowed size of ${this.maxFileSize / (1024 * 1024)}MB`,
       );
     }
 
-    // Validate file type
     if (!this.allowedMimeTypes.includes(file.mimetype)) {
       throw new BadRequestException(
-        `File type ${file.mimetype} is not allowed. Allowed types: ${this.allowedMimeTypes.join(", ")}`,
+        `File type ${file.mimetype} is not allowed. Allowed types: ${this.allowedMimeTypes.join(', ')}`,
       );
     }
 
-    // Generate unique filename
     const fileExtension = path.extname(file.originalname);
     const uniqueFilename = `${uuidv4()}${fileExtension}`;
     const filePath = path.join(this.uploadDir, uniqueFilename);
 
     try {
-      // Write file to disk
       await fs.writeFile(filePath, file.buffer);
 
-      // Return file information
       return {
         url: `/uploads/${uniqueFilename}`,
         filename: uniqueFilename,
@@ -82,7 +77,7 @@ export class FileUploadService {
         size: file.size,
       };
     } catch (error) {
-      throw new BadRequestException("Failed to save file");
+      throw new BadRequestException('Failed to save file');
     }
   }
 
@@ -92,7 +87,6 @@ export class FileUploadService {
     try {
       await fs.unlink(filePath);
     } catch (error) {
-      // File might not exist, which is okay for cleanup purposes
       console.warn(`Failed to delete file ${filename}:`, error.message);
     }
   }
@@ -120,11 +114,11 @@ export class FileUploadService {
   }
 
   isImageFile(mimeType: string): boolean {
-    return mimeType.startsWith("image/");
+    return mimeType.startsWith('image/');
   }
 
   getFileSizeString(sizeInBytes: number): string {
-    const units = ["B", "KB", "MB", "GB"];
+    const units = ['B', 'KB', 'MB', 'GB'];
     let size = sizeInBytes;
     let unitIndex = 0;
 
