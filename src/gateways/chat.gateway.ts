@@ -11,6 +11,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
 import { MessageService } from '@/services/message.service';
+import { HealthService } from '@/services/health.service';
 import { CreateMessageDto } from '@/dto/create-message.dto';
 
 interface AuthenticatedSocket extends Socket {
@@ -48,6 +49,9 @@ export class ChatGateway
 
   handleConnection(client: AuthenticatedSocket, ..._args: any[]) {
     this.logger.log(`Client connected: ${client.id}`);
+    
+    // Track connection for health metrics
+    HealthService.addConnection(client.id);
 
     const token =
       client.handshake.auth?.token || client.handshake.headers?.authorization;
@@ -66,6 +70,9 @@ export class ChatGateway
 
   handleDisconnect(client: AuthenticatedSocket) {
     this.logger.log(`Client disconnected: ${client.id}`);
+    
+    // Remove connection from health metrics tracking
+    HealthService.removeConnection(client.id);
 
     if (client.userId) {
       this.removeUserSocket(client.userId, client.id);

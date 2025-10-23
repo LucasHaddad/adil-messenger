@@ -31,15 +31,12 @@ export class PerformanceInterceptor implements NestInterceptor {
           this.logger.log(`Request: ${method} ${url} took ${duration}ms`);
         }
 
-        // Log to metrics service if implemented
         this.recordMetrics(method, url, duration);
       }),
     );
   }
 
   private recordMetrics(method: string, url: string, duration: number): void {
-    // This would integrate with a metrics service like Prometheus
-    // For now, we'll just log the data
     if (duration > 100) {
       this.logger.debug(`Performance metric: ${method} ${url} - ${duration}ms`);
     }

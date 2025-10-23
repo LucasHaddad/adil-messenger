@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '@/entities/user.entity';
+import { Message } from '@/entities/message.entity';
 
 export interface HealthStatus {
   status: 'ok' | 'error' | 'degraded';
@@ -29,12 +30,28 @@ export interface DetailedHealthStatus extends HealthStatus {
 export class HealthService {
   private readonly logger = new Logger(HealthService.name);
   private readonly startTime = Date.now();
+  private static activeConnections = new Set<string>();
 
   constructor(
     private configService: ConfigService,
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    @InjectRepository(Message)
+    private messageRepository: Repository<Message>,
   ) {}
+
+  // Static methods for connection tracking
+  static addConnection(socketId: string): void {
+    this.activeConnections.add(socketId);
+  }
+
+  static removeConnection(socketId: string): void {
+    this.activeConnections.delete(socketId);
+  }
+
+  static getActiveConnectionCount(): number {
+    return this.activeConnections.size;
+  }
 
   async getBasicHealth(): Promise<HealthStatus> {
     return {
@@ -51,6 +68,7 @@ export class HealthService {
       const databaseHealth = await this.checkDatabaseHealth();
       const memoryUsage = process.memoryUsage();
       const totalUsers = await this.userRepository.count();
+      const totalMessages = await this.messageRepository.count();
 
       return {
         ...basicHealth,
@@ -69,8 +87,8 @@ export class HealthService {
         },
         metrics: {
           totalUsers,
-          totalMessages: 0, // Will be implemented when message repository is injected
-          activeConnections: 0, // Will be implemented with WebSocket tracking
+          totalMessages,
+          activeConnections: HealthService.getActiveConnectionCount(),
         },
       };
     } catch (error) {
