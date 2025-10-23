@@ -15,13 +15,7 @@ import { User, Message, Reaction } from '@/entities';
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_DATABASE'),
         entities: [User, Message, Reaction],
-        migrations: [
-          process.env.NODE_ENV === 'production'
-            ? 'dist/database/migrations/*.js'
-            : 'src/database/migrations/*.ts',
-        ],
-        synchronize: false, // Always false in production, use migrations instead
-        migrationsRun: configService.get('NODE_ENV') === 'production',
+        synchronize: configService.get('NODE_ENV') === 'development', // Enable synchronize in development
         logging: configService.get('DB_LOGGING') === 'true',
         ssl:
           configService.get('NODE_ENV') === 'production'

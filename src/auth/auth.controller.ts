@@ -37,11 +37,28 @@ import {
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Public()
   @Post('register')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Register as user' })
+  @ApiResponse({
+    status: 200,
+    description: 'User successfully registered',
+    type: AuthResponseDto,
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'Username already taken',
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'Email already taken',
+  })
   async register(@Body() registerDto: RegisterDto): Promise<AuthResponseDto> {
     return this.authService.register(registerDto);
   }
 
+  @Public()
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Login user' })

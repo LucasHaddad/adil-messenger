@@ -62,7 +62,8 @@ async function bootstrap() {
   const speedLimiter = slowDown({
     windowMs: 15 * 60 * 1000,
     delayAfter: 100,
-    delayMs: 500,
+    delayMs: () => 500, // Use function format to avoid deprecation warning
+    validate: { delayMs: false }, // Disable the deprecation warning
   });
 
   app.use(generalLimiter);
@@ -155,7 +156,6 @@ async function bootstrap() {
         description: 'Enter JWT token',
         in: 'header',
       },
-      'JWT-auth',
     )
     .addApiKey(
       {
@@ -164,7 +164,6 @@ async function bootstrap() {
         in: 'header',
         description: 'CSRF token for protection against CSRF attacks',
       },
-      'CSRF-token',
     )
     .build();
 

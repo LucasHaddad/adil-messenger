@@ -23,38 +23,16 @@ import { CacheService } from '@/services/cache.service';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    ThrottlerModule.forRoot([
-      {
-        name: 'auth',
-        ttl: 60 * 1000,
-        limit: 5,
-      },
-      {
-        name: 'upload',
-        ttl: 60 * 1000,
-        limit: 10,
-      },
-      {
-        name: 'search',
-        ttl: 60 * 1000,
-        limit: 30,
-      },
-      {
-        name: 'read',
-        ttl: 60 * 1000,
-        limit: 100,
-      },
-      {
-        name: 'write',
-        ttl: 60 * 1000,
-        limit: 50,
-      },
-      {
-        name: 'default',
-        ttl: 60 * 1000,
-        limit: 20,
-      },
-    ]),
+    ThrottlerModule.forRoot({
+      throttlers: [
+        { name: 'auth', ttl: 60000, limit: 5 },
+        { name: 'upload', ttl: 60000, limit: 10 },
+        { name: 'search', ttl: 60000, limit: 30 },
+        { name: 'read', ttl: 60000, limit: 100 },
+        { name: 'write', ttl: 60000, limit: 50 },
+        { name: 'general', ttl: 60000, limit: 20 },
+      ],
+    }),
     DatabaseModule,
     AuthModule,
     MessageModule,
