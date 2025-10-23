@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MessageController } from '@/controllers/message.controller';
 import { MessageService } from '@/services/message.service';
+import { FileUploadService } from '@/services/file-upload.service';
 import { CreateMessageDto, UpdateMessageDto } from '@/dto';
 import { 
   createMockMessage,
@@ -33,6 +34,13 @@ describe('MessageController', () => {
         {
           provide: MessageService,
           useValue: mockMessageService,
+        },
+        {
+          provide: FileUploadService,
+          useValue: {
+            uploadFile: jest.fn(),
+            validateFileForMessage: jest.fn(),
+          },
         },
       ],
     }).compile();

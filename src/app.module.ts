@@ -5,6 +5,9 @@ import { DatabaseModule } from '@/database/database.module';
 import { MessageModule } from '@/modules/message.module';
 import { UserModule } from '@/modules/user.module';
 import { AuthModule } from '@/auth/auth.module';
+import { WebSocketModule } from '@/modules/websocket.module';
+import { FileModule } from '@/modules/file.module';
+import { ReactionModule } from '@/modules/reaction.module';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { CsrfGuard } from '@/auth/guards/csrf.guard';
 
@@ -17,6 +20,9 @@ import { CsrfGuard } from '@/auth/guards/csrf.guard';
     AuthModule,
     MessageModule,
     UserModule,
+    WebSocketModule,
+    FileModule,
+    ReactionModule,
   ],
   providers: [
     {

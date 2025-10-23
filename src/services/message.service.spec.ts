@@ -36,6 +36,13 @@ describe('MessageService', () => {
           provide: getRepositoryToken(User),
           useValue: mockUserRepository,
         },
+        {
+          provide: 'ChatGateway',
+          useValue: {
+            broadcastMessageUpdate: jest.fn(),
+            broadcastMessageDelete: jest.fn(),
+          },
+        },
       ],
     }).compile();
 

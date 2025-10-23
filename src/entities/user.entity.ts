@@ -40,6 +40,9 @@ export class User {
   @OneToMany(() => Message, (message) => message.author)
   messages: Message[];
 
+  // Reactions relationship - will be properly typed when Reaction is imported
+  reactions?: any[];
+
   @BeforeInsert()
   @BeforeUpdate()
   async hashPassword() {

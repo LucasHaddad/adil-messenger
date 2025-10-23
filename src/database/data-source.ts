@@ -1,7 +1,7 @@
 import { DataSource } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { config } from 'dotenv';
-import { User, Message } from '@/entities';
+import { User, Message, Reaction } from '@/entities';
 
 config();
 
@@ -14,7 +14,7 @@ export default new DataSource({
   username: configService.get('DB_USERNAME'),
   password: configService.get('DB_PASSWORD'),
   database: configService.get('DB_DATABASE'),
-  entities: [User, Message],
+  entities: [User, Message, Reaction],
   migrations: ['src/database/migrations/*.ts'],
   synchronize: false, // Set to false in production
   logging: configService.get('DB_LOGGING') === 'true',

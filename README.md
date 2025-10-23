@@ -4,14 +4,21 @@ A comprehensive chat system API built with **NestJS**, **TypeScript**, **Postgre
 
 ## 🚀 Features
 
-- **Message Management**: Send, edit, delete messages
+- **Message Management**: Send, edit, delete messages with file attachments
 - **Threaded Conversations**: Reply to messages creating conversation threads
-- **User Management**: Create and manage users
+- **User Management**: Create and manage users with secure authentication
+- **Authentication**: JWT-based authentication with CSRF protection
+- **Authorization**: Protected routes with Bearer token validation
+- **Session Management**: Secure session handling with logout functionality
+- **Real-time Chat**: WebSocket integration for live messaging and presence
+- **File Attachments**: Upload and share images, documents, and media files
+- **Message Reactions**: React to messages with emojis and like/dislike system
 - **Pagination**: Efficient pagination for messages and replies
 - **Validation**: Comprehensive input validation using class-validator
-- **Documentation**: Auto-generated Swagger/OpenAPI documentation
+- **Documentation**: Auto-generated Swagger/OpenAPI documentation with auth schemes
 - **Error Handling**: Global exception handling with detailed error responses
 - **Database**: PostgreSQL with TypeORM for robust data persistence
+- **Security**: Password hashing, CSRF tokens, and global authentication guards
 
 ## 🏗️ Architecture & Design Decisions
 
@@ -35,20 +42,38 @@ A comprehensive chat system API built with **NestJS**, **TypeScript**, **Postgre
 
 ## 📚 API Endpoints
 
+### Authentication
+- `POST /api/v1/auth/register` - Register a new user
+- `POST /api/v1/auth/login` - Login user and get JWT token
+- `POST /api/v1/auth/logout` - Logout and invalidate session
+
 ### Users
-- `POST /api/v1/users` - Create a new user
-- `GET /api/v1/users` - Get all users
-- `GET /api/v1/users/:id` - Get user by ID
-- `GET /api/v1/users/username/:username` - Get user by username
+- `GET /api/v1/users` - Get all users (requires authentication)
+- `GET /api/v1/users/:id` - Get user by ID (requires authentication)
+- `GET /api/v1/users/username/:username` - Get user by username (requires authentication)
 
 ### Messages
-- `POST /api/v1/messages` - Send a new message or reply
-- `GET /api/v1/messages` - Get all messages (paginated)
-- `GET /api/v1/messages/:id` - Get specific message
-- `GET /api/v1/messages/:id/replies` - Get replies to a message
-- `GET /api/v1/messages/:id/thread` - Get conversation thread
-- `PATCH /api/v1/messages/:id` - Edit a message
-- `DELETE /api/v1/messages/:id` - Delete a message
+- `POST /api/v1/messages` - Send a new message or reply (requires authentication)
+- `POST /api/v1/messages/with-attachment` - Send a message with file attachment (requires authentication)
+- `GET /api/v1/messages` - Get all messages (paginated, requires authentication)
+- `GET /api/v1/messages/:id` - Get specific message (requires authentication)
+- `GET /api/v1/messages/:id/replies` - Get replies to a message (requires authentication)
+- `GET /api/v1/messages/:id/thread` - Get conversation thread (requires authentication)
+- `PATCH /api/v1/messages/:id` - Edit a message (requires authentication)
+- `DELETE /api/v1/messages/:id` - Delete a message (requires authentication)
+
+### Reactions
+- `POST /api/v1/reactions` - Add or update a reaction to a message (requires authentication)
+- `DELETE /api/v1/reactions/message/:messageId` - Remove user's reaction from a message (requires authentication)
+- `GET /api/v1/reactions/message/:messageId` - Get all reactions for a message (requires authentication)
+- `GET /api/v1/reactions/message/:messageId/user` - Get user's reaction to a message (requires authentication)
+- `GET /api/v1/reactions/user/my-reactions` - Get user's own reactions (requires authentication)
+- `GET /api/v1/reactions/user/stats` - Get user's reaction statistics (requires authentication)
+- `GET /api/v1/reactions/trending` - Get trending reactions (requires authentication)
+
+### Files
+- `POST /api/v1/files/upload` - Upload a file for message attachment (requires authentication)
+- `GET /api/v1/files/:filename` - Download or view an uploaded file (requires authentication)
 
 ## 🛠️ Installation & Setup
 
@@ -119,31 +144,44 @@ JWT_EXPIRES_IN=24h
 
 ## 📝 Usage Examples
 
-### Creating a User
+### Register a New User
 ```bash
-curl -X POST http://localhost:3000/api/v1/users \
+curl -X POST http://localhost:3000/api/v1/auth/register \
   -H "Content-Type: application/json" \
   -d '{
-    "username": "johndoe",
     "email": "john@example.com",
-    "fullName": "John Doe"
+    "password": "securePassword123"
   }'
 ```
 
-### Sending a Message
+### Login and Get JWT Token
+```bash
+curl -X POST http://localhost:3000/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "john@example.com",
+    "password": "securePassword123"
+  }'
+```
+
+### Sending a Message (Authenticated)
 ```bash
 curl -X POST http://localhost:3000/api/v1/messages \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "X-CSRF-Token: YOUR_CSRF_TOKEN" \
   -d '{
     "content": "Hello, this is my first message!",
     "authorId": "user-uuid-here"
   }'
 ```
 
-### Replying to a Message
+### Replying to a Message (Authenticated)
 ```bash
 curl -X POST http://localhost:3000/api/v1/messages \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "X-CSRF-Token: YOUR_CSRF_TOKEN" \
   -d '{
     "content": "This is a reply!",
     "authorId": "user-uuid-here",
@@ -151,45 +189,87 @@ curl -X POST http://localhost:3000/api/v1/messages \
   }'
 ```
 
-### Editing a Message
+### Sending a Message with Attachment (Authenticated)
 ```bash
-curl -X PATCH http://localhost:3000/api/v1/messages/{messageId}?authorId={authorId} \
+curl -X POST http://localhost:3000/api/v1/messages/with-attachment \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "X-CSRF-Token: YOUR_CSRF_TOKEN" \
+  -F "content=Check out this image!" \
+  -F "authorId=user-uuid-here" \
+  -F "file=@/path/to/image.jpg"
+```
+
+### Adding a Reaction to a Message (Authenticated)
+```bash
+curl -X POST http://localhost:3000/api/v1/reactions \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "X-CSRF-Token: YOUR_CSRF_TOKEN" \
   -d '{
-    "content": "Updated message content"
+    "type": "like",
+    "messageId": "message-uuid-here"
   }'
+```
+
+### Uploading a File (Authenticated)
+```bash
+curl -X POST http://localhost:3000/api/v1/files/upload \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "X-CSRF-Token: YOUR_CSRF_TOKEN" \
+  -F "file=@/path/to/document.pdf"
 ```
 
 ## 🏗️ Project Structure
 
 ```
 src/
+├── auth/                # Authentication module
+│   ├── auth.controller.ts
+│   ├── auth.service.ts
+│   ├── strategies/      # Passport strategies
+│   ├── guards/          # Auth guards
+│   └── decorators/      # Auth decorators
 ├── controllers/          # REST API controllers
 │   ├── message.controller.ts
-│   └── user.controller.ts
+│   ├── user.controller.ts
+│   ├── file.controller.ts
+│   └── reaction.controller.ts
 ├── database/            # Database configuration
 │   ├── data-source.ts
 │   └── database.module.ts
 ├── dto/                 # Data Transfer Objects
+│   ├── auth-response.dto.ts
+│   ├── login.dto.ts
+│   ├── register.dto.ts
 │   ├── create-message.dto.ts
 │   ├── update-message.dto.ts
 │   ├── create-user.dto.ts
+│   ├── create-reaction.dto.ts
+│   ├── reaction-response.dto.ts
 │   └── message-response.dto.ts
 ├── entities/            # TypeORM entities
 │   ├── user.entity.ts
 │   ├── message.entity.ts
+│   ├── reaction.entity.ts
 │   └── index.ts
 ├── filters/             # Exception filters
 │   └── global-exception.filter.ts
+├── gateways/            # WebSocket gateways
+│   └── chat.gateway.ts
 ├── modules/             # NestJS modules
+│   ├── auth.module.ts
 │   ├── message.module.ts
 │   ├── user.module.ts
-│   └── app.module.ts
+│   ├── file.module.ts
+│   ├── reaction.module.ts
+│   └── websocket.module.ts
 ├── pipes/               # Validation pipes
 │   └── validation.pipe.ts
 ├── services/            # Business logic services
 │   ├── message.service.ts
-│   └── user.service.ts
+│   ├── user.service.ts
+│   ├── file-upload.service.ts
+│   └── reaction.service.ts
 └── main.ts             # Application entry point
 ```
 
@@ -203,10 +283,6 @@ src/
 
 ## 🚀 Future Enhancements
 
-- **Authentication**: JWT-based user authentication
-- **Real-time**: WebSocket integration for live chat
-- **File Uploads**: Support for media attachments
-- **Message Reactions**: Like, dislike, emoji reactions
 - **Search**: Full-text search across messages
 - **Rate Limiting**: API rate limiting and throttling
 - **Caching**: Redis caching for improved performance

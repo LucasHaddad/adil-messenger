@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Message, User } from '@/entities';
@@ -11,6 +11,8 @@ export class MessageService {
     private messageRepository: Repository<Message>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    @Inject(forwardRef(() => 'ChatGateway'))
+    private chatGateway?: any, // We'll type this as any to avoid circular dependency issues
   ) {}
 
   /**
@@ -40,6 +42,10 @@ export class MessageService {
       content,
       authorId,
       parentMessageId,
+      attachmentUrl: createMessageDto.attachmentUrl,
+      attachmentName: createMessageDto.attachmentName,
+      attachmentType: createMessageDto.attachmentType,
+      attachmentSize: createMessageDto.attachmentSize,
     });
 
     return this.messageRepository.save(message);
@@ -169,6 +175,15 @@ export class MessageService {
       where: { parentMessageId: updatedMessage.id, isDeleted: false },
     });
 
+    // Broadcast real-time update
+    if (this.chatGateway) {
+      this.chatGateway.broadcastMessageUpdate(
+        updatedMessage.id,
+        updatedMessage.content,
+        updatedMessage.authorId,
+      );
+    }
+
     return updatedMessage;
   }
 
@@ -196,6 +211,11 @@ export class MessageService {
     message.deletedAt = new Date();
 
     await this.messageRepository.save(message);
+
+    // Broadcast real-time deletion
+    if (this.chatGateway) {
+      this.chatGateway.broadcastMessageDelete(message.id, message.authorId);
+    }
   }
 
   /**

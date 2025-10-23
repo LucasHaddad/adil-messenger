@@ -28,4 +28,20 @@ export class CreateMessageDto {
   @IsOptional()
   @IsString()
   parentMessageId?: string;
+
+  // File attachment fields (populated from uploaded file)
+  @IsOptional()
+  @IsString()
+  attachmentUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  attachmentName?: string;
+
+  @IsOptional()
+  @IsString()
+  attachmentType?: string;
+
+  @IsOptional()
+  attachmentSize?: number;
 }

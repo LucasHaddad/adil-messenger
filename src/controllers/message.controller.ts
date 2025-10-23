@@ -12,7 +12,10 @@ import {
   HttpCode,
   HttpStatus,
   Request,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiTags,
   ApiOperation,
@@ -22,10 +25,19 @@ import {
   ApiBody,
   ApiBearerAuth,
   ApiHeader,
+  ApiConsumes,
 } from '@nestjs/swagger';
 import { MessageService } from '@/services/message.service';
+import { FileUploadService, UploadedFile as CustomUploadedFile } from '@/services/file-upload.service';
 import { CreateMessageDto, UpdateMessageDto, MessageResponseDto } from '@/dto';
 import { Message } from '@/entities';
+
+interface MulterFile {
+  originalname: string;
+  mimetype: string;
+  size: number;
+  buffer: Buffer;
+}
 
 @ApiTags('Messages')
 @ApiBearerAuth()
@@ -36,7 +48,10 @@ import { Message } from '@/entities';
 })
 @Controller('messages')
 export class MessageController {
-  constructor(private readonly messageService: MessageService) {}
+  constructor(
+    private readonly messageService: MessageService,
+    private readonly fileUploadService: FileUploadService,
+  ) {}
 
   @Post()
   @ApiOperation({ summary: 'Send a new message or reply to an existing message' })
@@ -50,6 +65,71 @@ export class MessageController {
   @ApiResponse({ status: 404, description: 'Author or parent message not found' })
   async createMessage(@Body() createMessageDto: CreateMessageDto): Promise<Message> {
     return this.messageService.createMessage(createMessageDto);
+  }
+
+  @Post('with-attachment')
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiOperation({ summary: 'Send a message with file attachment' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'Message with file attachment',
+    schema: {
+      type: 'object',
+      properties: {
+        content: {
+          type: 'string',
+          description: 'Message content',
+          maxLength: 2000,
+        },
+        authorId: {
+          type: 'string',
+          description: 'Author UUID',
+        },
+        parentMessageId: {
+          type: 'string',
+          description: 'Parent message UUID (optional)',
+        },
+        file: {
+          type: 'string',
+          format: 'binary',
+          description: 'File attachment (optional)',
+        },
+      },
+      required: ['content', 'authorId'],
+    },
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Message with attachment created successfully',
+    type: MessageResponseDto,
+  })
+  async createMessageWithAttachment(
+    @Body() createMessageDto: CreateMessageDto,
+    @UploadedFile() file?: MulterFile,
+  ): Promise<Message> {
+    let messageDto = { ...createMessageDto };
+
+    // If a file is uploaded, process it
+    if (file) {
+      const customFile: CustomUploadedFile = {
+        originalname: file.originalname,
+        mimetype: file.mimetype,
+        size: file.size,
+        buffer: file.buffer,
+      };
+
+      const fileResult = await this.fileUploadService.uploadFile(customFile);
+      
+      messageDto = {
+        ...messageDto,
+        attachmentUrl: fileResult.url,
+        attachmentName: fileResult.originalName,
+        attachmentType: fileResult.mimeType,
+        attachmentSize: fileResult.size,
+      };
+    }
+
+    return this.messageService.createMessage(messageDto);
   }
 
   @Get()

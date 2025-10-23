@@ -27,6 +27,19 @@ export class Message {
   @Column({ nullable: true })
   deletedAt?: Date;
 
+  // File attachment fields
+  @Column({ nullable: true })
+  attachmentUrl?: string;
+
+  @Column({ nullable: true })
+  attachmentName?: string;
+
+  @Column({ nullable: true })
+  attachmentType?: string; // mime type
+
+  @Column({ nullable: true })
+  attachmentSize?: number; // in bytes
+
   @CreateDateColumn()
   createdAt: Date;
 
@@ -52,6 +65,9 @@ export class Message {
 
   @OneToMany(() => Message, (message) => message.parentMessage)
   replies: Message[];
+
+  // Reactions relationship - will be properly typed when Reaction is imported
+  reactions?: any[];
 
   // Virtual property to count replies
   replyCount?: number;
