@@ -144,12 +144,14 @@ export class HealthService {
     percentage: number;
   }> {
     try {
-      // This is a simplified version - in production, you'd use a proper disk usage library
-      const stats = await import('fs').then(fs => fs.promises.stat('./'));
+      // This is a simplified version - in production I would use an APM (newrelic, datadog, dynatrace, elastic apm).
+      const fs = await import('fs');
+      const stats = await fs.promises.stat('./');
+      const used = stats.blocks * 512;
       return {
-        used: 0,
-        total: 0,
-        percentage: 0,
+        used,
+        total: stats.size,
+        percentage: Math.round((used / stats.size) * 100),
       };
     } catch {
       return {

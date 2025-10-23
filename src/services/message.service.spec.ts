@@ -8,7 +8,7 @@ import { CreateMessageDto, UpdateMessageDto } from '@/dto';
 import {
   createMockRepository,
   createMockMessage,
-  createMockUser,
+  createMockUser as _createMockUser,
   testUser1,
   testUser2,
   testMessage1,
@@ -143,7 +143,7 @@ describe('MessageService', () => {
         ...createMessageDto,
         parentMessageId: testMessage1.id,
       };
-      const deletedParent = createMockMessage({
+      const _deletedParent = createMockMessage({
         ...testMessage1,
         isDeleted: true,
       });

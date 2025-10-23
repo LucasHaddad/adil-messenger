@@ -17,6 +17,7 @@ import {
   ApiHeader,
 } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
+import * as _ from 'lodash';
 import { AuthService } from '@/auth/auth.service';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { CsrfGuard } from '@/auth/guards/csrf.guard';
@@ -111,12 +112,7 @@ export class AuthController {
     description: 'Current user information',
   })
   async getProfile(@Request() req) {
-    const {
-      password: _password,
-      currentSessionId: _currentSessionId,
-      ...userProfile
-    } = req.user;
-    return userProfile;
+    return _.omit(req.user, ['password, currentSessionId']);
   }
 
   @UseGuards(JwtAuthGuard)

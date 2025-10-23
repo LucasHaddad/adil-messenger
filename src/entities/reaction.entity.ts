@@ -7,8 +7,8 @@ import {
   JoinColumn,
   Unique,
 } from 'typeorm';
-import { User } from '@/entities/user.entity';
-import { Message } from '@/entities/message.entity';
+import { User } from './user.entity';
+import { Message } from './message.entity';
 
 export enum ReactionType {
   LIKE = 'like',

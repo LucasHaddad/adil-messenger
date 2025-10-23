@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { FileUploadService, UploadedFile } from './file-upload.service';
 import { BadRequestException } from '@nestjs/common';
 import * as fs from 'fs/promises';
-import * as path from 'path';
+import * as _path from 'path';
 
 jest.mock('fs/promises');
 jest.mock('uuid', () => ({

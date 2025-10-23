@@ -6,7 +6,7 @@ import { Reflector } from '@nestjs/core';
 
 describe('CustomThrottlerGuard', () => {
   let guard: CustomThrottlerGuard;
-  let reflector: Reflector;
+  let _reflector: Reflector;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -23,7 +23,7 @@ describe('CustomThrottlerGuard', () => {
     }).compile();
 
     guard = module.get<CustomThrottlerGuard>(CustomThrottlerGuard);
-    reflector = module.get<Reflector>(Reflector);
+    _reflector = module.get<Reflector>(Reflector);
   });
 
   it('should be defined', () => {

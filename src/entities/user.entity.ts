@@ -9,7 +9,7 @@ import {
   BeforeUpdate,
 } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
-import { Message } from '@/entities/message.entity';
+import { Message } from './message.entity';
 
 @Entity('users')
 export class User {

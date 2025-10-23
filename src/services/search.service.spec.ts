@@ -27,10 +27,15 @@ describe('SearchService', () => {
   };
 
   const mockMessageRepository = {
-    createQueryBuilder: jest.fn().mockReturnValue(mockQueryBuilder),
+    createQueryBuilder: jest.fn().mockReturnThis(),
+    where: jest.fn().mockReturnThis(),
+    andWhere: jest.fn().mockReturnThis(),
+    orderBy: jest.fn().mockReturnThis(),
+    take: jest.fn().mockReturnThis(),
+    skip: jest.fn().mockReturnThis(),
+    getManyAndCount: jest.fn(),
     query: jest.fn(),
   };
-
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [

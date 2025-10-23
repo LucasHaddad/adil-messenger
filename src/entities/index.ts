@@ -1,5 +1,5 @@
-import { User } from '@/entities/user.entity';
-import { Message } from '@/entities/message.entity';
-import { Reaction, ReactionType } from '@/entities/reaction.entity';
+import { User } from './user.entity';
+import { Message } from './message.entity';
+import { Reaction, ReactionType } from './reaction.entity';
 
 export { User, Message, Reaction, ReactionType };

@@ -26,12 +26,13 @@ const mockSocket = {
 
 const mockMessageService = {
   createMessage: jest.fn(),
+  getMessages: jest.fn(),
   getMessageById: jest.fn(),
 };
 
 describe('ChatGateway', () => {
   let gateway: ChatGateway;
-  let messageService: MessageService;
+  let _messageService: MessageService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -39,15 +40,16 @@ describe('ChatGateway', () => {
         ChatGateway,
         {
           provide: MessageService,
-          useValue: {
-            createMessage: jest.fn(),
-            getMessages: jest.fn(),
-          },
+          useValue: mockMessageService,
         },
       ],
     }).compile();
 
     gateway = module.get<ChatGateway>(ChatGateway);
+    _messageService = module.get<MessageService>(MessageService);
+
+    // Set the server property directly for testing
+    gateway.server = mockServer;
   });
 
   afterEach(() => {

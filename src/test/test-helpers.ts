@@ -14,8 +14,12 @@ import { createMockRepository } from '@/test/test-utils';
  * This is useful for integration tests where you want to test against a real database
  */
 export class TestDatabaseHelper {
-  static async createTestingModule(entities: any[] = [User, Message]) {
-    return Test.createTestingModule({});
+  static async createTestModule(_entities: any[]) {
+    const moduleRef = await Test.createTestingModule({}).compile();
+    // Cleanup database before tests
+    const _userRepo = moduleRef.get('UserRepository');
+    const _messageRepo = moduleRef.get('MessageRepository');
+    return moduleRef;
   }
 
   static async cleanupDatabase(moduleRef: TestingModule) {
