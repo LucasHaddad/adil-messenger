@@ -14,6 +14,7 @@ A comprehensive chat system API built with **NestJS**, **TypeScript**, **Postgre
 - **File Attachments**: Upload and share images, documents, and media files
 - **Message Reactions**: React to messages with emojis and like/dislike system
 - **Search Functionality**: Full-text search across messages with filters and suggestions
+- **Rate Limiting**: API throttling with different limits for different endpoint types
 - **Pagination**: Efficient pagination for messages and replies
 - **Validation**: Comprehensive input validation using class-validator
 - **Documentation**: Auto-generated Swagger/OpenAPI documentation with auth schemes
@@ -40,6 +41,13 @@ A comprehensive chat system API built with **NestJS**, **TypeScript**, **Postgre
 - **Stateless**: Each request contains all necessary information
 - **Consistent**: Uniform response structure and error handling
 - **Versioned**: API versioning through URL prefix (`/api/v1`)
+
+### **Rate Limiting Strategy**
+- **Endpoint-specific Limits**: Different rate limits for different types of operations
+- **User-based Tracking**: Authenticated users tracked by user ID, unauthenticated by IP
+- **Graduated Limits**: Stricter limits for sensitive operations (auth, uploads)
+- **Header Information**: Rate limit status included in response headers
+- **Graceful Degradation**: Clear error messages and retry-after headers
 
 ## 📚 API Endpoints
 
@@ -302,6 +310,10 @@ src/
 │   └── global-exception.filter.ts
 ├── gateways/            # WebSocket gateways
 │   └── chat.gateway.ts
+├── guards/              # Custom guards
+│   └── custom-throttler.guard.ts
+├── interceptors/        # Response interceptors
+│   └── rate-limit-headers.interceptor.ts
 ├── modules/             # NestJS modules
 │   ├── auth.module.ts
 │   ├── message.module.ts
@@ -328,10 +340,16 @@ src/
 - **Authorization**: Author verification for edit/delete operations
 - **Soft Deletes**: Preserve data integrity while respecting user privacy
 - **CORS**: Configurable CORS settings for production deployment
+- **Rate Limiting**: API throttling prevents abuse and ensures fair usage
+  - Authentication endpoints: 5 requests per minute
+  - File uploads: 10 requests per minute
+  - Search operations: 30 requests per minute
+  - Read operations: 100 requests per minute
+  - Write operations: 50 requests per minute
+- **Rate Limit Headers**: Transparent rate limit status in response headers
 
 ## 🚀 Future Enhancements
 
-- **Rate Limiting**: API rate limiting and throttling
 - **Caching**: Redis caching for improved performance
 
 ## 📄 License

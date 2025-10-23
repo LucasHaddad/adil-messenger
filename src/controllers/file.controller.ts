@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiConsumes, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { Response } from 'express';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { CsrfGuard } from '@/auth/guards/csrf.guard';
@@ -34,6 +35,7 @@ export class FileController {
 
   @Post('upload')
   @UseInterceptors(FileInterceptor('file'))
+  @Throttle({ upload: { limit: 10, ttl: 60000 } }) // 10 uploads per minute
   @ApiOperation({
     summary: 'Upload a file for message attachment',
     description: 'Upload a file that can be attached to messages. Supports images, documents, and other file types.',

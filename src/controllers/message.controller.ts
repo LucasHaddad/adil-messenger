@@ -27,6 +27,7 @@ import {
   ApiHeader,
   ApiConsumes,
 } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { MessageService } from '@/services/message.service';
 import { FileUploadService, UploadedFile as CustomUploadedFile } from '@/services/file-upload.service';
 import { CreateMessageDto, UpdateMessageDto, MessageResponseDto } from '@/dto';
@@ -47,6 +48,7 @@ interface MulterFile {
   required: true,
 })
 @Controller('messages')
+@Throttle({ read: { limit: 100, ttl: 60000 }, write: { limit: 50, ttl: 60000 } }) // Different limits for read vs write
 export class MessageController {
   constructor(
     private readonly messageService: MessageService,
@@ -54,6 +56,7 @@ export class MessageController {
   ) {}
 
   @Post()
+  @Throttle({ write: { limit: 30, ttl: 60000 } }) // Stricter limit for message creation
   @ApiOperation({ summary: 'Send a new message or reply to an existing message' })
   @ApiBody({ type: CreateMessageDto })
   @ApiResponse({
@@ -69,6 +72,7 @@ export class MessageController {
 
   @Post('with-attachment')
   @UseInterceptors(FileInterceptor('file'))
+  @Throttle({ write: { limit: 20, ttl: 60000 } }) // Even stricter for file attachments
   @ApiOperation({ summary: 'Send a message with file attachment' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({

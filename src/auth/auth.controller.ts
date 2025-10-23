@@ -16,6 +16,7 @@ import {
   ApiBearerAuth,
   ApiHeader,
 } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { AuthService } from '@/auth/auth.service';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { CsrfGuard } from '@/auth/guards/csrf.guard';
@@ -27,6 +28,7 @@ import { AuthResponseDto, CsrfTokenDto, LogoutResponseDto } from '@/dto/auth-res
 @ApiTags('Authentication')
 @Controller('auth')
 @UseGuards(CsrfGuard)
+@Throttle({ auth: { limit: 5, ttl: 60000 } }) // 5 auth requests per minute
 export class AuthController {
   constructor(private authService: AuthService) {}
 

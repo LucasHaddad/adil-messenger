@@ -15,6 +15,7 @@ import {
   ApiBearerAuth,
   ApiQuery,
 } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { SearchService } from '@/services/search.service';
 import { MessageSearchDto } from '@/dto/message-search.dto';
 import { MessageSearchResponseDto } from '@/dto/message-search-response.dto';
@@ -25,6 +26,7 @@ import { CsrfGuard } from '@/auth/guards/csrf.guard';
 @Controller('search')
 @UseGuards(JwtAuthGuard, CsrfGuard)
 @ApiBearerAuth()
+@Throttle({ search: { limit: 30, ttl: 60000 } }) // 30 search requests per minute
 export class SearchController {
   constructor(private readonly searchService: SearchService) {}
 
