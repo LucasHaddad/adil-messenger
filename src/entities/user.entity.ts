@@ -6,7 +6,7 @@ import {
   UpdateDateColumn,
   OneToMany,
 } from 'typeorm';
-import { Message } from './message.entity';
+import { Message } from '@/entities/message.entity';
 
 @Entity('users')
 export class User {

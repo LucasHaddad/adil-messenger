@@ -1,12 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { UserController } from './user.controller';
-import { UserService } from '../services/user.service';
-import { CreateUserDto } from '../dto';
+import { UserController } from '@/controllers/user.controller';
+import { UserService } from '@/services/user.service';
+import { CreateUserDto } from '@/dto';
 import { 
   testUser1, 
   testUser2,
   TEST_ERRORS 
-} from '../test/test-utils';
+} from '@/test/test-utils';
 import { NotFoundException, ConflictException } from '@nestjs/common';
 
 describe('UserController', () => {

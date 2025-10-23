@@ -2,9 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { NotFoundException, ForbiddenException } from '@nestjs/common';
-import { MessageService } from './message.service';
-import { Message, User } from '../entities';
-import { CreateMessageDto, UpdateMessageDto } from '../dto';
+import { MessageService } from '@/services/message.service';
+import { Message, User } from '@/entities';
+import { CreateMessageDto, UpdateMessageDto } from '@/dto';
 import { 
   createMockRepository, 
   createMockMessage, 
@@ -14,7 +14,7 @@ import {
   testMessage1,
   testMessage2,
   TEST_ERRORS 
-} from '../test/test-utils';
+} from '@/test/test-utils';
 
 describe('MessageService', () => {
   let service: MessageService;

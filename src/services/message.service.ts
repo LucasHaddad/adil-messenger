@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Message, User } from '../entities';
-import { CreateMessageDto, UpdateMessageDto } from '../dto';
+import { Message, User } from '@/entities';
+import { CreateMessageDto, UpdateMessageDto } from '@/dto';
 
 @Injectable()
 export class MessageService {

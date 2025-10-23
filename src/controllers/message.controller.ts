@@ -20,9 +20,9 @@ import {
   ApiQuery,
   ApiBody,
 } from '@nestjs/swagger';
-import { MessageService } from '../services/message.service';
-import { CreateMessageDto, UpdateMessageDto, MessageResponseDto } from '../dto';
-import { Message } from '../entities';
+import { MessageService } from '@/services/message.service';
+import { CreateMessageDto, UpdateMessageDto, MessageResponseDto } from '@/dto';
+import { Message } from '@/entities';
 
 @ApiTags('Messages')
 @Controller('messages')

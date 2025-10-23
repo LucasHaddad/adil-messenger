@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { MessageController } from './message.controller';
-import { MessageService } from '../services/message.service';
-import { CreateMessageDto, UpdateMessageDto } from '../dto';
+import { MessageController } from '@/controllers/message.controller';
+import { MessageService } from '@/services/message.service';
+import { CreateMessageDto, UpdateMessageDto } from '@/dto';
 import { 
   createMockMessage,
   testUser1, 
@@ -9,7 +9,7 @@ import {
   testMessage1,
   testMessage2,
   TEST_ERRORS 
-} from '../test/test-utils';
+} from '@/test/test-utils';
 import { NotFoundException, ForbiddenException } from '@nestjs/common';
 
 describe('MessageController', () => {

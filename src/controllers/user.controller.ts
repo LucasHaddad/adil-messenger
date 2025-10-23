@@ -13,9 +13,9 @@ import {
   ApiParam,
   ApiBody,
 } from '@nestjs/swagger';
-import { UserService } from '../services/user.service';
-import { CreateUserDto } from '../dto';
-import { User } from '../entities';
+import { UserService } from '@/services/user.service';
+import { CreateUserDto } from '@/dto';
+import { User } from '@/entities';
 
 @ApiTags('Users')
 @Controller('users')

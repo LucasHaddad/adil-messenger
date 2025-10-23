@@ -1,4 +1,4 @@
-import { User } from './user.entity';
-import { Message } from './message.entity';
+import { User } from '@/entities/user.entity';
+import { Message } from '@/entities/message.entity';
 
 export { User, Message };

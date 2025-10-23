@@ -8,7 +8,7 @@ import {
   OneToMany,
   JoinColumn,
 } from 'typeorm';
-import { User } from './user.entity';
+import { User } from '@/entities/user.entity';
 
 @Entity('messages')
 export class Message {

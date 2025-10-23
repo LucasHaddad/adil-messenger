@@ -2,16 +2,16 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ConflictException, NotFoundException } from '@nestjs/common';
-import { UserService } from './user.service';
-import { User } from '../entities';
-import { CreateUserDto } from '../dto';
+import { UserService } from '@/services/user.service';
+import { User } from '@/entities';
+import { CreateUserDto } from '@/dto';
 import { 
   createMockRepository, 
   createMockUser, 
   testUser1, 
   testUser2,
   TEST_ERRORS 
-} from '../test/test-utils';
+} from '@/test/test-utils';
 
 describe('UserService', () => {
   let service: UserService;
