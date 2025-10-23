@@ -105,9 +105,9 @@
       }
     },
     "testEnvironment": "node",
-    "setupFilesAfterEnv": ["<rootDir>/src/test/setup.ts"],
-    "moduleNameMapping": {
-      "^@/(.*)$": "<rootDir>/src/$1"
+    "setupFilesAfterEnv": ["<rootDir>/test/setup.ts"],
+    "moduleNameMapper": {
+      "^@/(.*)$": "<rootDir>/$1"
     }
   }
 }
