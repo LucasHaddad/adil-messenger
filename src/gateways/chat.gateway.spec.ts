@@ -32,7 +32,6 @@ const mockMessageService = {
 
 describe('ChatGateway', () => {
   let gateway: ChatGateway;
-  let _messageService: MessageService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -46,7 +45,6 @@ describe('ChatGateway', () => {
     }).compile();
 
     gateway = module.get<ChatGateway>(ChatGateway);
-    _messageService = module.get<MessageService>(MessageService);
 
     // Set the server property directly for testing
     gateway.server = mockServer;

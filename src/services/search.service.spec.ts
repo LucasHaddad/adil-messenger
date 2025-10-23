@@ -1,13 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { SearchService } from '@/services/search.service';
+import { SearchService } from './search.service';
 import { Message } from '@/entities/message.entity';
 import { MessageSearchDto } from '@/dto/message-search.dto';
 
 describe('SearchService', () => {
   let service: SearchService;
-  let messageRepository: Repository<Message>;
 
   const mockQueryBuilder = {
     leftJoinAndSelect: jest.fn().mockReturnThis(),
@@ -27,7 +25,7 @@ describe('SearchService', () => {
   };
 
   const mockMessageRepository = {
-    createQueryBuilder: jest.fn().mockReturnThis(),
+    createQueryBuilder: jest.fn().mockReturnValue(mockQueryBuilder),
     where: jest.fn().mockReturnThis(),
     andWhere: jest.fn().mockReturnThis(),
     orderBy: jest.fn().mockReturnThis(),
@@ -48,9 +46,6 @@ describe('SearchService', () => {
     }).compile();
 
     service = module.get<SearchService>(SearchService);
-    messageRepository = module.get<Repository<Message>>(
-      getRepositoryToken(Message),
-    );
   });
 
   afterEach(() => {

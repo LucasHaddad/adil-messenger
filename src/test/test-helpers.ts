@@ -1,12 +1,9 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import {
   NotFoundException,
   ConflictException,
   ForbiddenException,
 } from '@nestjs/common';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { User, Message } from '@/entities';
 import { createMockRepository } from '@/test/test-utils';
 
 /**
@@ -16,17 +13,7 @@ import { createMockRepository } from '@/test/test-utils';
 export class TestDatabaseHelper {
   static async createTestModule(_entities: any[]) {
     const moduleRef = await Test.createTestingModule({}).compile();
-    // Cleanup database before tests
-    const _userRepo = moduleRef.get('UserRepository');
-    const _messageRepo = moduleRef.get('MessageRepository');
     return moduleRef;
-  }
-
-  static async cleanupDatabase(moduleRef: TestingModule) {
-    const userRepo = moduleRef.get<Repository<User>>(getRepositoryToken(User));
-    const messageRepo = moduleRef.get<Repository<Message>>(
-      getRepositoryToken(Message),
-    );
   }
 }
 

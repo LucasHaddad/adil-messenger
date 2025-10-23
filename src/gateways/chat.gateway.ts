@@ -49,7 +49,7 @@ export class ChatGateway
 
   handleConnection(client: AuthenticatedSocket, ..._args: any[]) {
     this.logger.log(`Client connected: ${client.id}`);
-    
+
     // Track connection for health metrics
     HealthService.addConnection(client.id);
 
@@ -70,7 +70,7 @@ export class ChatGateway
 
   handleDisconnect(client: AuthenticatedSocket) {
     this.logger.log(`Client disconnected: ${client.id}`);
-    
+
     // Remove connection from health metrics tracking
     HealthService.removeConnection(client.id);
 

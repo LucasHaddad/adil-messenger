@@ -3,7 +3,6 @@ import { ConfigService } from '@nestjs/config';
 import { FileUploadService, UploadedFile } from './file-upload.service';
 import { BadRequestException } from '@nestjs/common';
 import * as fs from 'fs/promises';
-import * as _path from 'path';
 
 jest.mock('fs/promises');
 jest.mock('uuid', () => ({
@@ -14,7 +13,6 @@ const mockFs = fs as jest.Mocked<typeof fs>;
 
 describe('FileUploadService', () => {
   let service: FileUploadService;
-  let configService: ConfigService;
 
   const mockFile: UploadedFile = {
     originalname: 'test.jpg',
@@ -37,7 +35,6 @@ describe('FileUploadService', () => {
     }).compile();
 
     service = module.get<FileUploadService>(FileUploadService);
-    configService = module.get<ConfigService>(ConfigService);
 
     // Mock fs operations
     mockFs.access.mockResolvedValue();

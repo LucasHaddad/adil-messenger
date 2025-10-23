@@ -2,11 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { CustomThrottlerGuard } from '@/guards/custom-throttler.guard';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ExecutionContext } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
 
 describe('CustomThrottlerGuard', () => {
   let guard: CustomThrottlerGuard;
-  let _reflector: Reflector;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -23,7 +21,6 @@ describe('CustomThrottlerGuard', () => {
     }).compile();
 
     guard = module.get<CustomThrottlerGuard>(CustomThrottlerGuard);
-    _reflector = module.get<Reflector>(Reflector);
   });
 
   it('should be defined', () => {

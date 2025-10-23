@@ -8,6 +8,7 @@ import { AuthService } from '@/auth/auth.service';
 import { JwtStrategy } from '@/auth/strategies/jwt.strategy';
 import { LocalStrategy } from '@/auth/strategies/local.strategy';
 import { User } from '@/entities/user.entity';
+import { SecurityLoggerService } from '@/services/security-logger.service';
 
 @Module({
   imports: [
@@ -17,9 +18,7 @@ import { User } from '@/entities/user.entity';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        secret:
-          configService.get<string>('JWT_SECRET') ||
-          'fallback-secret-key-change-in-production',
+        secret: configService.get<string>('JWT_SECRET'),
         signOptions: {
           expiresIn: '1h',
         },
@@ -28,7 +27,7 @@ import { User } from '@/entities/user.entity';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, LocalStrategy],
+  providers: [SecurityLoggerService, AuthService, JwtStrategy, LocalStrategy],
   exports: [AuthService, JwtModule, PassportModule],
 })
 export class AuthModule {}

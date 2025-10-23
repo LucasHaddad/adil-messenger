@@ -112,7 +112,7 @@ export class AuthController {
     description: 'Current user information',
   })
   async getProfile(@Request() req) {
-    return _.omit(req.user, ['password, currentSessionId']);
+    return _.omit(req.user, ['password', 'currentSessionId']);
   }
 
   @UseGuards(JwtAuthGuard)

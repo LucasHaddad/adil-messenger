@@ -100,7 +100,7 @@ describe('HealthController', () => {
 
       // Remove one connection
       HealthService.removeConnection('socket-1');
-      
+
       const result2 = await controller.detailedHealthCheck();
       expect(result2.metrics.activeConnections).toBe(1);
 
