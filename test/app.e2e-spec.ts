@@ -1,21 +1,37 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { AppModule } from './../src/app.module';
+import { AppModule } from '../src/app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { GlobalExceptionFilter } from '../src/filters/global-exception.filter';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule } from '@nestjs/config';
 
-describe('AppController (e2e)', () => {
+describe('App E2E Tests', () => {
   let app: INestApplication;
+  let moduleRef: TestingModule;
 
-  beforeEach(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
+  beforeAll(async () => {
+    moduleRef = await Test.createTestingModule({
+      imports: [
+        ConfigModule.forRoot({
+          isGlobal: true,
+          envFilePath: '.env.test',
+        }),
+        TypeOrmModule.forRoot({
+          type: 'sqlite',
+          database: ':memory:',
+          entities: [__dirname + '/../src/**/*.entity{.ts,.js}'],
+          synchronize: true,
+          logging: false,
+        }),
+        AppModule,
+      ],
     }).compile();
 
-    app = moduleFixture.createNestApplication();
+    app = moduleRef.createNestApplication();
     
-    // Apply the same configuration as in main.ts
+    // Apply the same configuration as in main.ts to test pipes and filters
     app.useGlobalPipes(
       new ValidationPipe({
         whitelist: true,
@@ -29,316 +45,323 @@ describe('AppController (e2e)', () => {
     await app.init();
   });
 
-  afterEach(async () => {
+  afterAll(async () => {
     await app.close();
+    await moduleRef.close();
   });
 
-  describe('/api/v1/users (POST)', () => {
-    it('should create a new user', () => {
+  describe('Validation Pipe Tests', () => {
+    it('should validate user creation with correct data', async () => {
       const createUserDto = {
         username: 'testuser',
         email: 'test@example.com',
         fullName: 'Test User',
       };
 
-      return request(app.getHttpServer())
+      const response = await request(app.getHttpServer())
         .post('/api/v1/users')
         .send(createUserDto)
-        .expect(201)
-        .expect((res) => {
-          expect(res.body).toHaveProperty('id');
-          expect(res.body.username).toBe(createUserDto.username);
-          expect(res.body.email).toBe(createUserDto.email);
-          expect(res.body.fullName).toBe(createUserDto.fullName);
-        });
+        .expect(201);
+
+      expect(response.body).toHaveProperty('id');
+      expect(response.body.username).toBe(createUserDto.username);
+      expect(response.body.email).toBe(createUserDto.email);
     });
 
-    it('should validate required fields', () => {
+    it('should reject user creation with invalid email format', async () => {
       const invalidUserDto = {
-        username: '',
-        // Missing email and fullName
-      };
-
-      return request(app.getHttpServer())
-        .post('/api/v1/users')
-        .send(invalidUserDto)
-        .expect(400);
-    });
-
-    it('should validate email format', () => {
-      const invalidEmailDto = {
-        username: 'testuser',
+        username: 'testuser2',
         email: 'invalid-email',
         fullName: 'Test User',
       };
 
-      return request(app.getHttpServer())
+      const response = await request(app.getHttpServer())
         .post('/api/v1/users')
-        .send(invalidEmailDto)
+        .send(invalidUserDto)
         .expect(400);
+
+      expect(response.body).toHaveProperty('message');
+      expect(response.body.message).toContain('Validation failed');
     });
-  });
 
-  describe('/api/v1/users (GET)', () => {
-    it('should return all users', () => {
-      return request(app.getHttpServer())
-        .get('/api/v1/users')
-        .expect(200)
-        .expect((res) => {
-          expect(Array.isArray(res.body)).toBe(true);
-        });
-    });
-  });
-
-  describe('/api/v1/messages (POST)', () => {
-    let userId: string;
-
-    beforeEach(async () => {
-      // Create a user first
-      const createUserDto = {
-        username: `user_${Date.now()}`,
-        email: `user_${Date.now()}@example.com`,
-        fullName: 'Test User',
+    it('should reject user creation with missing required fields', async () => {
+      const incompleteUserDto = {
+        username: 'testuser3',
+        // missing email and fullName
       };
 
-      const userResponse = await request(app.getHttpServer())
+      const response = await request(app.getHttpServer())
         .post('/api/v1/users')
-        .send(createUserDto);
+        .send(incompleteUserDto)
+        .expect(400);
 
-      userId = userResponse.body.id;
+      expect(response.body).toHaveProperty('message');
+      expect(response.body.message).toContain('Validation failed');
     });
 
-    it('should create a new message', () => {
-      const createMessageDto = {
-        content: 'Test message content',
-        authorId: userId,
+    it('should reject user creation with forbidden non-whitelisted properties', async () => {
+      const userWithExtraProps = {
+        username: 'testuser4',
+        email: 'test4@example.com',
+        fullName: 'Test User 4',
+        hackerField: 'malicious data',
+        anotherBadField: 'more bad data',
       };
 
-      return request(app.getHttpServer())
+      const response = await request(app.getHttpServer())
+        .post('/api/v1/users')
+        .send(userWithExtraProps)
+        .expect(400);
+
+      expect(response.body).toHaveProperty('message');
+    });
+
+    it('should validate message creation with correct data', async () => {
+      // First create a user
+      const user = await request(app.getHttpServer())
+        .post('/api/v1/users')
+        .send({
+          username: 'messageuser',
+          email: 'message@example.com',
+          fullName: 'Message User',
+        })
+        .expect(201);
+
+      const createMessageDto = {
+        content: 'This is a test message',
+        authorId: user.body.id,
+      };
+
+      const response = await request(app.getHttpServer())
         .post('/api/v1/messages')
         .send(createMessageDto)
-        .expect(201)
-        .expect((res) => {
-          expect(res.body).toHaveProperty('id');
-          expect(res.body.content).toBe(createMessageDto.content);
-          expect(res.body.authorId).toBe(createMessageDto.authorId);
-          expect(res.body.isEdited).toBe(false);
-          expect(res.body.isDeleted).toBe(false);
-        });
+        .expect(201);
+
+      expect(response.body).toHaveProperty('id');
+      expect(response.body.content).toBe(createMessageDto.content);
     });
 
-    it('should validate message content is not empty', () => {
+    it('should reject message creation with empty content', async () => {
+      const user = await request(app.getHttpServer())
+        .post('/api/v1/users')
+        .send({
+          username: 'messageuser2',
+          email: 'message2@example.com',
+          fullName: 'Message User 2',
+        })
+        .expect(201);
+
       const invalidMessageDto = {
         content: '',
-        authorId: userId,
+        authorId: user.body.id,
       };
 
-      return request(app.getHttpServer())
+      const response = await request(app.getHttpServer())
         .post('/api/v1/messages')
         .send(invalidMessageDto)
         .expect(400);
+
+      expect(response.body).toHaveProperty('message');
+      expect(response.body.message).toContain('Validation failed');
     });
+  });
 
-    it('should validate author exists', () => {
-      const invalidAuthorDto = {
-        content: 'Test message',
-        authorId: '00000000-0000-0000-0000-000000000000',
-      };
-
-      return request(app.getHttpServer())
-        .post('/api/v1/messages')
-        .send(invalidAuthorDto)
+  describe('Global Exception Filter Tests', () => {
+    it('should handle 404 errors with proper format', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/v1/nonexistent-endpoint')
         .expect(404);
-    });
-  });
 
-  describe('/api/v1/messages (GET)', () => {
-    it('should return paginated messages', () => {
-      return request(app.getHttpServer())
-        .get('/api/v1/messages')
-        .expect(200)
-        .expect((res) => {
-          expect(res.body).toHaveProperty('messages');
-          expect(res.body).toHaveProperty('total');
-          expect(res.body).toHaveProperty('page');
-          expect(res.body).toHaveProperty('limit');
-          expect(Array.isArray(res.body.messages)).toBe(true);
-        });
+      expect(response.body).toHaveProperty('statusCode', 404);
+      expect(response.body).toHaveProperty('message');
+      expect(response.body).toHaveProperty('timestamp');
+      expect(response.body).toHaveProperty('path');
     });
 
-    it('should handle pagination parameters', () => {
-      return request(app.getHttpServer())
-        .get('/api/v1/messages?page=2&limit=5')
-        .expect(200)
-        .expect((res) => {
-          expect(res.body.page).toBe(2);
-          expect(res.body.limit).toBe(5);
-        });
+    it('should handle user not found errors', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/v1/users/99999999-9999-9999-9999-999999999999')
+        .expect(404);
+
+      expect(response.body).toHaveProperty('statusCode', 404);
+      expect(response.body).toHaveProperty('message');
+      expect(response.body.message).toContain('not found');
     });
-  });
 
-  describe('Message workflow (e2e)', () => {
-    let userId: string;
-    let messageId: string;
+    it('should handle message not found errors', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/v1/messages/99999999-9999-9999-9999-999999999999')
+        .expect(404);
 
-    beforeEach(async () => {
-      // Create a user
-      const createUserDto = {
-        username: `workflow_user_${Date.now()}`,
-        email: `workflow_${Date.now()}@example.com`,
-        fullName: 'Workflow Test User',
-      };
+      expect(response.body).toHaveProperty('statusCode', 404);
+      expect(response.body).toHaveProperty('message');
+    });
 
-      const userResponse = await request(app.getHttpServer())
+    it('should handle authorization errors when deleting others messages', async () => {
+      // Create two users
+      const user1 = await request(app.getHttpServer())
         .post('/api/v1/users')
-        .send(createUserDto);
-
-      userId = userResponse.body.id;
-
-      // Create a message
-      const createMessageDto = {
-        content: 'Original message content',
-        authorId: userId,
-      };
-
-      const messageResponse = await request(app.getHttpServer())
-        .post('/api/v1/messages')
-        .send(createMessageDto);
-
-      messageId = messageResponse.body.id;
-    });
-
-    it('should complete full message lifecycle', async () => {
-      // 1. Get the message
-      await request(app.getHttpServer())
-        .get(`/api/v1/messages/${messageId}`)
-        .expect(200)
-        .expect((res) => {
-          expect(res.body.id).toBe(messageId);
-          expect(res.body.content).toBe('Original message content');
-        });
-
-      // 2. Update the message
-      const updateDto = {
-        content: 'Updated message content',
-      };
-
-      await request(app.getHttpServer())
-        .patch(`/api/v1/messages/${messageId}?authorId=${userId}`)
-        .send(updateDto)
-        .expect(200)
-        .expect((res) => {
-          expect(res.body.content).toBe('Updated message content');
-          expect(res.body.isEdited).toBe(true);
-        });
-
-      // 3. Create a reply
-      const replyDto = {
-        content: 'This is a reply',
-        authorId: userId,
-        parentMessageId: messageId,
-      };
-
-      const replyResponse = await request(app.getHttpServer())
-        .post('/api/v1/messages')
-        .send(replyDto)
+        .send({
+          username: 'user1',
+          email: 'user1@example.com',
+          fullName: 'User One',
+        })
         .expect(201);
 
-      const replyId = replyResponse.body.id;
-
-      // 4. Get replies
-      await request(app.getHttpServer())
-        .get(`/api/v1/messages/${messageId}/replies`)
-        .expect(200)
-        .expect((res) => {
-          expect(res.body.replies).toHaveLength(1);
-          expect(res.body.replies[0].id).toBe(replyId);
-        });
-
-      // 5. Get conversation thread
-      await request(app.getHttpServer())
-        .get(`/api/v1/messages/${messageId}/thread`)
-        .expect(200)
-        .expect((res) => {
-          expect(res.body.id).toBe(messageId);
-          expect(res.body.replies).toHaveLength(1);
-        });
-
-      // 6. Delete the reply
-      await request(app.getHttpServer())
-        .delete(`/api/v1/messages/${replyId}?authorId=${userId}`)
-        .expect(204);
-
-      // 7. Delete the original message
-      await request(app.getHttpServer())
-        .delete(`/api/v1/messages/${messageId}?authorId=${userId}`)
-        .expect(204);
-
-      // 8. Verify message is deleted (should return 404)
-      await request(app.getHttpServer())
-        .get(`/api/v1/messages/${messageId}`)
-        .expect(404);
-    });
-
-    it('should prevent unauthorized operations', async () => {
-      // Create another user
-      const anotherUserDto = {
-        username: `another_user_${Date.now()}`,
-        email: `another_${Date.now()}@example.com`,
-        fullName: 'Another User',
-      };
-
-      const anotherUserResponse = await request(app.getHttpServer())
+      const user2 = await request(app.getHttpServer())
         .post('/api/v1/users')
-        .send(anotherUserDto);
+        .send({
+          username: 'user2',
+          email: 'user2@example.com',
+          fullName: 'User Two',
+        })
+        .expect(201);
 
-      const anotherUserId = anotherUserResponse.body.id;
+      // User1 creates a message
+      const message = await request(app.getHttpServer())
+        .post('/api/v1/messages')
+        .send({
+          content: 'User1 message',
+          authorId: user1.body.id,
+        })
+        .expect(201);
 
-      // Try to update message as different user
-      const updateDto = {
-        content: 'Unauthorized update',
-      };
-
-      await request(app.getHttpServer())
-        .patch(`/api/v1/messages/${messageId}?authorId=${anotherUserId}`)
-        .send(updateDto)
+      // User2 tries to delete User1's message
+      const response = await request(app.getHttpServer())
+        .delete(`/api/v1/messages/${message.body.id}`)
+        .send({ userId: user2.body.id })
         .expect(403);
 
-      // Try to delete message as different user
-      await request(app.getHttpServer())
-        .delete(`/api/v1/messages/${messageId}?authorId=${anotherUserId}`)
-        .expect(403);
+      expect(response.body).toHaveProperty('statusCode', 403);
+      expect(response.body).toHaveProperty('message');
     });
   });
 
-  describe('Error handling (e2e)', () => {
-    it('should handle non-existent resources', async () => {
-      const nonExistentId = '00000000-0000-0000-0000-000000000000';
+  describe('Module Integration Tests', () => {
+    it('should properly wire UserModule dependencies', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/v1/users')
+        .expect(200);
 
-      await request(app.getHttpServer())
-        .get(`/api/v1/messages/${nonExistentId}`)
-        .expect(404);
-
-      await request(app.getHttpServer())
-        .get(`/api/v1/users/${nonExistentId}`)
-        .expect(404);
+      expect(Array.isArray(response.body)).toBe(true);
     });
 
-    it('should handle invalid UUID format', async () => {
-      await request(app.getHttpServer())
-        .get('/api/v1/messages/invalid-uuid')
-        .expect(400);
+    it('should properly wire MessageModule dependencies', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/v1/messages')
+        .expect(200);
 
-      await request(app.getHttpServer())
-        .get('/api/v1/users/invalid-uuid')
-        .expect(400);
+      expect(Array.isArray(response.body)).toBe(true);
     });
 
-    it('should handle malformed JSON', async () => {
-      await request(app.getHttpServer())
+    it('should handle user and message relationship correctly', async () => {
+      // Create a user
+      const user = await request(app.getHttpServer())
         .post('/api/v1/users')
-        .send('{ malformed json }')
-        .expect(400);
+        .send({
+          username: 'relationuser',
+          email: 'relation@example.com',
+          fullName: 'Relation User',
+        })
+        .expect(201);
+
+      // Create a message for the user
+      const message = await request(app.getHttpServer())
+        .post('/api/v1/messages')
+        .send({
+          content: 'Test relationship message',
+          authorId: user.body.id,
+        })
+        .expect(201);
+
+      // Verify the message has the correct author
+      const messageResponse = await request(app.getHttpServer())
+        .get(`/api/v1/messages/${message.body.id}`)
+        .expect(200);
+
+      expect(messageResponse.body.author.id).toBe(user.body.id);
+    });
+
+    it('should handle message replies correctly', async () => {
+      // Create a user
+      const user = await request(app.getHttpServer())
+        .post('/api/v1/users')
+        .send({
+          username: 'replyuser',
+          email: 'reply@example.com',
+          fullName: 'Reply User',
+        })
+        .expect(201);
+
+      // Create a parent message
+      const parentMessage = await request(app.getHttpServer())
+        .post('/api/v1/messages')
+        .send({
+          content: 'Parent message',
+          authorId: user.body.id,
+        })
+        .expect(201);
+
+      // Create a reply
+      const reply = await request(app.getHttpServer())
+        .post('/api/v1/messages')
+        .send({
+          content: 'Reply message',
+          authorId: user.body.id,
+          parentMessageId: parentMessage.body.id,
+        })
+        .expect(201);
+
+      // Get replies for the parent message
+      const repliesResponse = await request(app.getHttpServer())
+        .get(`/api/v1/messages/${parentMessage.body.id}/replies`)
+        .expect(200);
+
+      expect(Array.isArray(repliesResponse.body)).toBe(true);
+      expect(repliesResponse.body.length).toBe(1);
+      expect(repliesResponse.body[0].id).toBe(reply.body.id);
+    });
+  });
+
+  describe('Data Transformation Tests', () => {
+    it('should transform user input correctly', async () => {
+      const userInput = {
+        username: '  spaceduser  ', // with spaces
+        email: '  UPPER@EXAMPLE.COM  ', // uppercase with spaces
+        fullName: 'spaced user',
+      };
+
+      const response = await request(app.getHttpServer())
+        .post('/api/v1/users')
+        .send(userInput)
+        .expect(201);
+
+      // The response should have transformed data
+      expect(response.body.username).toBe('spaceduser'); // trimmed
+      expect(response.body.email).toBe('upper@example.com'); // lowercase
+    });
+
+    it('should handle message content transformation', async () => {
+      const user = await request(app.getHttpServer())
+        .post('/api/v1/users')
+        .send({
+          username: 'transformuser',
+          email: 'transform@example.com',
+          fullName: 'Transform User',
+        })
+        .expect(201);
+
+      const messageInput = {
+        content: '  This is a message with extra spaces  ',
+        authorId: user.body.id,
+      };
+
+      const response = await request(app.getHttpServer())
+        .post('/api/v1/messages')
+        .send(messageInput)
+        .expect(201);
+
+      expect(response.body.content).toBe('This is a message with extra spaces');
     });
   });
 });

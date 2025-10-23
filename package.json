@@ -87,7 +87,12 @@
       "!**/index.ts",
       "!**/main.ts",
       "!**/database/data-source.ts",
-      "!**/database/migrations/**"
+      "!**/database/migrations/**",
+      "!**/*.spec.ts",
+      "!**/*.e2e-spec.ts",
+      "!**/test/**",
+      "!**/test-utils.ts",
+      "!**/test-helpers.ts"
     ],
     "coverageDirectory": "../coverage",
     "coverageReporters": [
