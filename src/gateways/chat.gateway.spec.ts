@@ -39,16 +39,15 @@ describe('ChatGateway', () => {
         ChatGateway,
         {
           provide: MessageService,
-          useValue: mockMessageService,
+          useValue: {
+            createMessage: jest.fn(),
+            getMessages: jest.fn(),
+          },
         },
       ],
     }).compile();
 
     gateway = module.get<ChatGateway>(ChatGateway);
-    messageService = module.get<MessageService>(MessageService);
-
-    // Set up the server mock
-    gateway.server = mockServer;
   });
 
   afterEach(() => {

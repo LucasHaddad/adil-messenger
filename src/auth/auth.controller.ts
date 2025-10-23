@@ -111,7 +111,11 @@ export class AuthController {
     description: 'Current user information',
   })
   async getProfile(@Request() req) {
-    const { password, currentSessionId, ...userProfile } = req.user;
+    const {
+      password: _password,
+      currentSessionId: _currentSessionId,
+      ...userProfile
+    } = req.user;
     return userProfile;
   }
 

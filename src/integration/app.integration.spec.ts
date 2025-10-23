@@ -1,4 +1,3 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { ValidationPipe, BadRequestException } from '@nestjs/common';
 import { GlobalExceptionFilter } from '@/filters/global-exception.filter';
 import { ArgumentMetadata } from '@nestjs/common';
@@ -6,10 +5,6 @@ import { CreateUserDto } from '@/dto/create-user.dto';
 import { CreateMessageDto } from '@/dto/create-message.dto';
 import { UserModule } from '@/modules/user.module';
 import { MessageModule } from '@/modules/message.module';
-import { UserService } from '@/services/user.service';
-import { MessageService } from '@/services/message.service';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { User, Message } from '@/entities';
 
 describe('Integration Tests - Pipes, Filters, and Modules', () => {
   describe('ValidationPipe', () => {

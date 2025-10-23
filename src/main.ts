@@ -9,13 +9,15 @@ import { rateLimit } from 'express-rate-limit';
 import slowDown from 'express-slow-down';
 import { AppModule } from '@/app.module';
 import { GlobalExceptionFilter } from '@/filters/global-exception.filter';
-import { SecurityLoggerService } from '@/services/security-logger.service';
+import { PerformanceInterceptor } from '@/interceptors/performance.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   const configService = app.get(ConfigService);
-  const securityLogger = app.get(SecurityLoggerService);
+
+  // Global interceptors for performance monitoring
+  app.useGlobalInterceptors(new PerformanceInterceptor());
 
   app.use(
     helmet({
@@ -48,7 +50,7 @@ async function bootstrap() {
     standardHeaders: true,
     legacyHeaders: false,
     handler: (req, res) => {
-      securityLogger.logRateLimitExceeded(req.ip, req.url);
+      console.warn('Rate limit exceeded');
       res.status(429).json({
         error: 'Too Many Requests',
         message: 'Rate limit exceeded',
@@ -109,7 +111,7 @@ async function bootstrap() {
         return callback(null, true);
       }
 
-      securityLogger.logUnauthorizedCORSAttempt(origin);
+      console.warn(`Unauthorized CORS attempt from origin: ${origin}`);
       return callback(new Error('Not allowed by CORS'));
     },
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],

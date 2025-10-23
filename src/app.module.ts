@@ -10,11 +10,13 @@ import { WebSocketModule } from '@/modules/websocket.module';
 import { FileModule } from '@/modules/file.module';
 import { ReactionModule } from '@/modules/reaction.module';
 import { SearchModule } from '@/modules/search.module';
+import { HealthModule } from '@/modules/health.module';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { CsrfGuard } from '@/auth/guards/csrf.guard';
 import { CustomThrottlerGuard } from '@/guards/custom-throttler.guard';
 import { RateLimitHeadersInterceptor } from '@/interceptors/rate-limit-headers.interceptor';
 import { SecurityLoggerService } from '@/services/security-logger.service';
+import { CacheService } from '@/services/cache.service';
 
 @Module({
   imports: [
@@ -61,9 +63,11 @@ import { SecurityLoggerService } from '@/services/security-logger.service';
     FileModule,
     ReactionModule,
     SearchModule,
+    HealthModule,
   ],
   providers: [
     SecurityLoggerService,
+    CacheService,
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
