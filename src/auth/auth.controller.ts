@@ -34,33 +34,13 @@ import {
 @UseGuards(CsrfGuard)
 @Throttle({ auth: { limit: 5, ttl: 60000 } })
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(private readonly authService: AuthService) {}
 
-  @Public()
-  @SkipCsrf()
   @Post('register')
-  @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Register a new user' })
-  @ApiResponse({
-    status: 201,
-    description: 'User successfully registered',
-    type: AuthResponseDto,
-  })
-  @ApiResponse({
-    status: 409,
-    description: 'Email or username already exists',
-  })
-  async register(
-    @Body() registerDto: RegisterDto,
-    @Session() session: Record<string, any>,
-  ): Promise<AuthResponseDto> {
-    const result = await this.authService.register(registerDto);
-    session.csrfToken = result.csrfToken;
-    return result;
+  async register(@Body() registerDto: RegisterDto): Promise<AuthResponseDto> {
+    return this.authService.register(registerDto);
   }
 
-  @Public()
-  @SkipCsrf()
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Login user' })

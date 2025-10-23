@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { Message } from '@/entities/message.entity';
-import { User } from '@/entities/user.entity';
 import { MessageSearchDto } from '@/dto/message-search.dto';
 import { MessageSearchResponseDto } from '@/dto/message-search-response.dto';
 

@@ -2,7 +2,6 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
-  BadRequestException,
   Inject,
   forwardRef,
 } from '@nestjs/common';

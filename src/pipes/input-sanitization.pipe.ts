@@ -10,7 +10,7 @@ import { SecurityLoggerService } from '@/services/security-logger.service';
 export class InputSanitizationPipe implements PipeTransform {
   constructor(private securityLogger: SecurityLoggerService) {}
 
-  transform(value: any, metadata: ArgumentMetadata) {
+  transform(value: any, _metadata: ArgumentMetadata) {
     if (!value) return value;
 
     const sanitizedValue = this.sanitizeInput(value);

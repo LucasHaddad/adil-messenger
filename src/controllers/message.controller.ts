@@ -11,7 +11,6 @@ import {
   ParseIntPipe,
   HttpCode,
   HttpStatus,
-  Request,
   UseInterceptors,
   UploadedFile,
 } from '@nestjs/common';

@@ -9,10 +9,13 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { Logger, UseGuards } from '@nestjs/common';
-import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
+import { Logger } from '@nestjs/common';
 import { MessageService } from '@/services/message.service';
 import { CreateMessageDto } from '@/dto/create-message.dto';
+
+interface AuthenticatedSocket extends Socket {
+  userId?: string;
+}
 
 interface AuthenticatedSocket extends Socket {
   userId?: string;
@@ -39,11 +42,11 @@ export class ChatGateway
 
   constructor(private messageService: MessageService) {}
 
-  afterInit(server: Server) {
+  afterInit(_server: Server) {
     this.logger.log('WebSocket Gateway initialized');
   }
 
-  handleConnection(client: AuthenticatedSocket, ...args: any[]) {
+  handleConnection(client: AuthenticatedSocket, ..._args: any[]) {
     this.logger.log(`Client connected: ${client.id}`);
 
     const token =

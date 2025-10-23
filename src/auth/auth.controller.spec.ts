@@ -56,25 +56,22 @@ describe('AuthController', () => {
     };
 
     it('should successfully register a user', async () => {
-      const mockSession = {};
       authService.register.mockResolvedValue(mockAuthResponse);
 
-      const result = await controller.register(registerDto, mockSession);
+      const result = await controller.register(registerDto);
 
       expect(authService.register).toHaveBeenCalledWith(registerDto);
-      expect(mockSession).toEqual({ csrfToken: 'csrf-token' });
       expect(result).toEqual(mockAuthResponse);
     });
 
     it('should propagate ConflictException from service', async () => {
-      const mockSession = {};
       authService.register.mockRejectedValue(
         new ConflictException('Email already registered'),
       );
 
-      await expect(
-        controller.register(registerDto, mockSession),
-      ).rejects.toThrow(ConflictException);
+      await expect(controller.register(registerDto)).rejects.toThrow(
+        ConflictException,
+      );
     });
   });
 
