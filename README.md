@@ -13,6 +13,7 @@ A comprehensive chat system API built with **NestJS**, **TypeScript**, **Postgre
 - **Real-time Chat**: WebSocket integration for live messaging and presence
 - **File Attachments**: Upload and share images, documents, and media files
 - **Message Reactions**: React to messages with emojis and like/dislike system
+- **Search Functionality**: Full-text search across messages with filters and suggestions
 - **Pagination**: Efficient pagination for messages and replies
 - **Validation**: Comprehensive input validation using class-validator
 - **Documentation**: Auto-generated Swagger/OpenAPI documentation with auth schemes
@@ -74,6 +75,13 @@ A comprehensive chat system API built with **NestJS**, **TypeScript**, **Postgre
 ### Files
 - `POST /api/v1/files/upload` - Upload a file for message attachment (requires authentication)
 - `GET /api/v1/files/:filename` - Download or view an uploaded file (requires authentication)
+
+### Search
+- `GET /api/v1/search/messages` - Search messages with full-text search and filters (requires authentication)
+- `GET /api/v1/search/suggestions` - Get autocomplete suggestions for search queries (requires authentication)
+- `GET /api/v1/search/popular` - Get popular search terms (requires authentication)
+- `POST /api/v1/search/index` - Create or rebuild search index for performance (requires authentication)
+- `DELETE /api/v1/search/index` - Drop search index (requires authentication)
 
 ## 🛠️ Installation & Setup
 
@@ -219,6 +227,41 @@ curl -X POST http://localhost:3000/api/v1/files/upload \
   -F "file=@/path/to/document.pdf"
 ```
 
+### Searching Messages (Authenticated)
+```bash
+# Search messages with query
+curl -G http://localhost:3000/api/v1/search/messages \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "X-CSRF-Token: YOUR_CSRF_TOKEN" \
+  -d "query=hello world" \
+  -d "limit=20" \
+  -d "offset=0"
+
+# Search messages by user and date range
+curl -G http://localhost:3000/api/v1/search/messages \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "X-CSRF-Token: YOUR_CSRF_TOKEN" \
+  -d "userId=user-uuid-here" \
+  -d "dateFrom=2023-01-01T00:00:00.000Z" \
+  -d "dateTo=2023-12-31T23:59:59.999Z"
+```
+
+### Getting Search Suggestions (Authenticated)
+```bash
+curl -G http://localhost:3000/api/v1/search/suggestions \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "X-CSRF-Token: YOUR_CSRF_TOKEN" \
+  -d "q=hel" \
+  -d "limit=5"
+```
+
+### Creating Search Index (Authenticated)
+```bash
+curl -X POST http://localhost:3000/api/v1/search/index \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "X-CSRF-Token: YOUR_CSRF_TOKEN"
+```
+
 ## 🏗️ Project Structure
 
 ```
@@ -233,7 +276,8 @@ src/
 │   ├── message.controller.ts
 │   ├── user.controller.ts
 │   ├── file.controller.ts
-│   └── reaction.controller.ts
+│   ├── reaction.controller.ts
+│   └── search.controller.ts
 ├── database/            # Database configuration
 │   ├── data-source.ts
 │   └── database.module.ts
@@ -246,7 +290,9 @@ src/
 │   ├── create-user.dto.ts
 │   ├── create-reaction.dto.ts
 │   ├── reaction-response.dto.ts
-│   └── message-response.dto.ts
+│   ├── message-response.dto.ts
+│   ├── message-search.dto.ts
+│   └── message-search-response.dto.ts
 ├── entities/            # TypeORM entities
 │   ├── user.entity.ts
 │   ├── message.entity.ts
@@ -262,6 +308,7 @@ src/
 │   ├── user.module.ts
 │   ├── file.module.ts
 │   ├── reaction.module.ts
+│   ├── search.module.ts
 │   └── websocket.module.ts
 ├── pipes/               # Validation pipes
 │   └── validation.pipe.ts
@@ -269,7 +316,8 @@ src/
 │   ├── message.service.ts
 │   ├── user.service.ts
 │   ├── file-upload.service.ts
-│   └── reaction.service.ts
+│   ├── reaction.service.ts
+│   └── search.service.ts
 └── main.ts             # Application entry point
 ```
 
@@ -283,7 +331,6 @@ src/
 
 ## 🚀 Future Enhancements
 
-- **Search**: Full-text search across messages
 - **Rate Limiting**: API rate limiting and throttling
 - **Caching**: Redis caching for improved performance
 

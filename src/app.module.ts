@@ -8,6 +8,7 @@ import { AuthModule } from '@/auth/auth.module';
 import { WebSocketModule } from '@/modules/websocket.module';
 import { FileModule } from '@/modules/file.module';
 import { ReactionModule } from '@/modules/reaction.module';
+import { SearchModule } from '@/modules/search.module';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { CsrfGuard } from '@/auth/guards/csrf.guard';
 
@@ -23,6 +24,7 @@ import { CsrfGuard } from '@/auth/guards/csrf.guard';
     WebSocketModule,
     FileModule,
     ReactionModule,
+    SearchModule,
   ],
   providers: [
     {
