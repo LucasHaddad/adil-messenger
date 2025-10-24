@@ -147,24 +147,20 @@ async function bootstrap() {
     .addTag('Authentication', 'User authentication and authorization endpoints')
     .addTag('Users', 'User management endpoints')
     .addTag('Messages', 'Message and reply management endpoints')
-    .addBearerAuth(
-      {
-        type: 'http',
-        scheme: 'bearer',
-        bearerFormat: 'JWT',
-        name: 'JWT',
-        description: 'Enter JWT token',
-        in: 'header',
-      },
-    )
-    .addApiKey(
-      {
-        type: 'apiKey',
-        name: 'X-CSRF-Token',
-        in: 'header',
-        description: 'CSRF token for protection against CSRF attacks',
-      },
-    )
+    .addBearerAuth({
+      type: 'http',
+      scheme: 'bearer',
+      bearerFormat: 'JWT',
+      name: 'JWT',
+      description: 'Enter JWT token',
+      in: 'header',
+    })
+    .addApiKey({
+      type: 'apiKey',
+      name: 'X-CSRF-Token',
+      in: 'header',
+      description: 'CSRF token for protection against CSRF attacks',
+    })
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
