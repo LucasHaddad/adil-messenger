@@ -13,6 +13,7 @@ import {
   HttpStatus,
   UseInterceptors,
   UploadedFile,
+  UseGuards,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
@@ -27,13 +28,16 @@ import {
   ApiConsumes,
 } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
+import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
+import { CsrfGuard } from '@/auth/guards/csrf.guard';
+import { CurrentUser } from '@/decorators/current-user.decorator';
 import { MessageService } from '@/services/message.service';
 import {
   FileUploadService,
   UploadedFile as CustomUploadedFile,
 } from '@/services/file-upload.service';
 import { CreateMessageDto, UpdateMessageDto, MessageResponseDto } from '@/dto';
-import { Message } from '@/entities';
+import { Message, User } from '@/entities';
 
 interface MulterFile {
   originalname: string;
@@ -49,6 +53,7 @@ interface MulterFile {
   description: 'CSRF token for security',
   required: true,
 })
+@UseGuards(JwtAuthGuard, CsrfGuard)
 @Controller('messages')
 @Throttle({
   read: { limit: 100, ttl: 60000 },
@@ -78,8 +83,13 @@ export class MessageController {
   })
   async createMessage(
     @Body() createMessageDto: CreateMessageDto,
+    @CurrentUser() user: User,
   ): Promise<Message> {
-    return this.messageService.createMessage(createMessageDto);
+    const messageWithAuthor = {
+      ...createMessageDto,
+      authorId: user.id,
+    };
+    return this.messageService.createMessage(messageWithAuthor);
   }
 
   @Post('with-attachment')
@@ -121,9 +131,13 @@ export class MessageController {
   })
   async createMessageWithAttachment(
     @Body() createMessageDto: CreateMessageDto,
-    @UploadedFile() file?: MulterFile,
+    @UploadedFile() file: MulterFile,
+    @CurrentUser() user: User,
   ): Promise<Message> {
-    let messageDto = { ...createMessageDto };
+    let messageDto = {
+      ...createMessageDto,
+      authorId: user.id,
+    };
 
     if (file) {
       const customFile: CustomUploadedFile = {
@@ -242,10 +256,6 @@ export class MessageController {
   @ApiOperation({ summary: 'Edit a message (only by the author)' })
   @ApiParam({ name: 'id', description: 'Message UUID' })
   @ApiBody({ type: UpdateMessageDto })
-  @ApiQuery({
-    name: 'authorId',
-    description: 'ID of the user making the request',
-  })
   @ApiResponse({
     status: 200,
     description: 'Message updated successfully',
@@ -260,19 +270,15 @@ export class MessageController {
   async updateMessage(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateMessageDto: UpdateMessageDto,
-    @Query('authorId', ParseUUIDPipe) authorId: string,
+    @CurrentUser() user: User,
   ): Promise<Message> {
-    return this.messageService.updateMessage(id, updateMessageDto, authorId);
+    return this.messageService.updateMessage(id, updateMessageDto, user.id);
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a message (only by the author)' })
   @ApiParam({ name: 'id', description: 'Message UUID' })
-  @ApiQuery({
-    name: 'authorId',
-    description: 'ID of the user making the request',
-  })
   @ApiResponse({ status: 204, description: 'Message deleted successfully' })
   @ApiResponse({
     status: 403,
@@ -281,8 +287,8 @@ export class MessageController {
   @ApiResponse({ status: 404, description: 'Message not found' })
   async deleteMessage(
     @Param('id', ParseUUIDPipe) id: string,
-    @Query('authorId', ParseUUIDPipe) authorId: string,
+    @CurrentUser() user: User,
   ): Promise<void> {
-    return this.messageService.deleteMessage(id, authorId);
+    return this.messageService.deleteMessage(id, user.id);
   }
 }

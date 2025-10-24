@@ -56,18 +56,24 @@ describe('MessageController', () => {
   describe('createMessage', () => {
     const createMessageDto: CreateMessageDto = {
       content: 'Test message content',
-      authorId: testUser1.id,
     };
 
     it('should create a new message successfully', async () => {
-      const expectedMessage = createMockMessage(createMessageDto);
+      const expectedMessage = createMockMessage({
+        ...createMessageDto,
+        authorId: testUser1.id,
+      });
       messageService.createMessage.mockResolvedValue(expectedMessage);
 
-      const result = await controller.createMessage(createMessageDto);
-
-      expect(messageService.createMessage).toHaveBeenCalledWith(
+      const result = await controller.createMessage(
         createMessageDto,
+        testUser1,
       );
+
+      expect(messageService.createMessage).toHaveBeenCalledWith({
+        ...createMessageDto,
+        authorId: testUser1.id,
+      });
       expect(result).toEqual(expectedMessage);
     });
 
@@ -76,13 +82,19 @@ describe('MessageController', () => {
         ...createMessageDto,
         parentMessageId: testMessage1.id,
       };
-      const expectedReply = createMockMessage(replyDto);
+      const expectedReply = createMockMessage({
+        ...replyDto,
+        authorId: testUser1.id,
+      });
 
       messageService.createMessage.mockResolvedValue(expectedReply);
 
-      const result = await controller.createMessage(replyDto);
+      const result = await controller.createMessage(replyDto, testUser1);
 
-      expect(messageService.createMessage).toHaveBeenCalledWith(replyDto);
+      expect(messageService.createMessage).toHaveBeenCalledWith({
+        ...replyDto,
+        authorId: testUser1.id,
+      });
       expect(result).toEqual(expectedReply);
     });
 
@@ -90,9 +102,9 @@ describe('MessageController', () => {
       const error = new NotFoundException('Author not found');
       messageService.createMessage.mockRejectedValue(error);
 
-      await expect(controller.createMessage(createMessageDto)).rejects.toThrow(
-        error,
-      );
+      await expect(
+        controller.createMessage(createMessageDto, testUser1),
+      ).rejects.toThrow(error);
     });
   });
 
@@ -252,7 +264,7 @@ describe('MessageController', () => {
       const result = await controller.updateMessage(
         testMessage1.id,
         updateMessageDto,
-        testUser1.id,
+        testUser1,
       );
 
       expect(messageService.updateMessage).toHaveBeenCalledWith(
@@ -268,11 +280,7 @@ describe('MessageController', () => {
       messageService.updateMessage.mockRejectedValue(error);
 
       await expect(
-        controller.updateMessage(
-          'nonexistent-id',
-          updateMessageDto,
-          testUser1.id,
-        ),
+        controller.updateMessage('nonexistent-id', updateMessageDto, testUser1),
       ).rejects.toThrow(error);
     });
 
@@ -281,11 +289,7 @@ describe('MessageController', () => {
       messageService.updateMessage.mockRejectedValue(error);
 
       await expect(
-        controller.updateMessage(
-          testMessage1.id,
-          updateMessageDto,
-          testUser2.id,
-        ),
+        controller.updateMessage(testMessage1.id, updateMessageDto, testUser2),
       ).rejects.toThrow(error);
     });
   });
@@ -294,10 +298,7 @@ describe('MessageController', () => {
     it('should delete message successfully', async () => {
       messageService.deleteMessage.mockResolvedValue(undefined);
 
-      const result = await controller.deleteMessage(
-        testMessage1.id,
-        testUser1.id,
-      );
+      const result = await controller.deleteMessage(testMessage1.id, testUser1);
 
       expect(messageService.deleteMessage).toHaveBeenCalledWith(
         testMessage1.id,
@@ -311,7 +312,7 @@ describe('MessageController', () => {
       messageService.deleteMessage.mockRejectedValue(error);
 
       await expect(
-        controller.deleteMessage('nonexistent-id', testUser1.id),
+        controller.deleteMessage('nonexistent-id', testUser1),
       ).rejects.toThrow(error);
     });
 
@@ -320,7 +321,7 @@ describe('MessageController', () => {
       messageService.deleteMessage.mockRejectedValue(error);
 
       await expect(
-        controller.deleteMessage(testMessage1.id, testUser2.id),
+        controller.deleteMessage(testMessage1.id, testUser2),
       ).rejects.toThrow(error);
     });
   });
@@ -373,7 +374,7 @@ describe('MessageController', () => {
       const result = await controller.updateMessage(
         testMessage1.id,
         emptyUpdateDto,
-        testUser1.id,
+        testUser1,
       );
 
       expect(result.content).toBe('');
@@ -387,7 +388,7 @@ describe('MessageController', () => {
       messageService.updateMessage.mockRejectedValue(concurrencyError);
 
       await expect(
-        controller.updateMessage(testMessage1.id, updateDto, testUser1.id),
+        controller.updateMessage(testMessage1.id, updateDto, testUser1),
       ).rejects.toThrow(concurrencyError);
     });
 
