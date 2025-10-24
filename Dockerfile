@@ -1,24 +1,29 @@
 # Use Node.js LTS version
-FROM node:22-alpine
+FROM node:22-alpine AS build
+
+# Set working directory
+WORKDIR /usr/src/app
+
+# Copy source code
+COPY . .
+
+# Install dependencies
+RUN yarn install --frozen-lockfile
+
+# Build the application
+RUN yarn build
+
+# Use Node.js LTS version
+FROM node:22-alpine AS production
 
 # Set working directory
 WORKDIR /usr/src/app
 
 # Copy package files
-COPY package*.json ./
-COPY yarn.lock ./
-
-# Install dependencies
-RUN yarn install --frozen-lockfile
-
-# Copy source code
-COPY . .
-
-# Build the application
-RUN yarn build
+COPY package*.json yarn.lock node_modules dist ./
 
 # Expose port
 EXPOSE 3000
 
 # Start the application
-CMD ["yarn", "start:prod"]
+CMD ["node", "dist/main.js"]
