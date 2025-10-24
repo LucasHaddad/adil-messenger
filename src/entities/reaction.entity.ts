@@ -30,8 +30,7 @@ export class Reaction {
   id: string;
 
   @Column({
-    type: 'enum',
-    enum: ReactionType,
+    type: 'text',
     default: ReactionType.LIKE,
   })
   type: ReactionType;
