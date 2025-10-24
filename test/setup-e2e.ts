@@ -1,5 +1,8 @@
 import 'reflect-metadata';
 
+// Set NODE_ENV to test for proper entity configuration
+process.env.NODE_ENV = 'test';
+
 // E2E test configuration
 jest.setTimeout(60000);
 

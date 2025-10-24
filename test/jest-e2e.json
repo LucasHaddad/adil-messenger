@@ -4,8 +4,12 @@
   "transform": {
     "^.+\\.(t|j)s$": "ts-jest"
   },
+  "transformIgnorePatterns": [
+    "node_modules/(?!.*)"
+  ],
   "moduleNameMapper": {
-    "^@/(.*)$": "<rootDir>/../src/$1"
+    "^@/(.*)$": "<rootDir>/../src/$1",
+    "^@paralleldrive/cuid2$": "<rootDir>/__mocks__/cuid2.js"
   },
   "testEnvironment": "node",
   "collectCoverageFrom": [
