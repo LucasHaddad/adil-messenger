@@ -9,7 +9,6 @@ import {
   ParseUUIDPipe,
   ParseIntPipe,
   UseGuards,
-  Request,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -23,6 +22,7 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { CsrfGuard } from '@/auth/guards/csrf.guard';
+import { CurrentUser } from '@/decorators/current-user.decorator';
 import { ReactionService } from '@/services/reaction.service';
 import { CreateReactionDto } from '@/dto/create-reaction.dto';
 import {
@@ -30,7 +30,7 @@ import {
   MessageReactionsDto,
   ReactionCountDto,
 } from '@/dto/reaction-response.dto';
-import { Reaction } from '@/entities';
+import { Reaction, User } from '@/entities';
 
 @ApiTags('Reactions')
 @ApiBearerAuth()
@@ -60,11 +60,11 @@ export class ReactionController {
   @ApiResponse({ status: 404, description: 'Message or user not found' })
   async addReaction(
     @Body() createReactionDto: CreateReactionDto,
-    @Request() req: any,
+    @CurrentUser() user: User,
   ): Promise<Reaction> {
     const reactionDto = {
       ...createReactionDto,
-      userId: req.user.id,
+      userId: user.id,
     };
     return this.reactionService.addReaction(reactionDto);
   }
@@ -83,9 +83,9 @@ export class ReactionController {
   @ApiResponse({ status: 404, description: 'Reaction not found' })
   async removeReaction(
     @Param('messageId', ParseUUIDPipe) messageId: string,
-    @Request() req: any,
+    @CurrentUser() user: User,
   ): Promise<{ message: string }> {
-    await this.reactionService.removeReaction(messageId, req.user.id);
+    await this.reactionService.removeReaction(messageId, user.id);
     return { message: 'Reaction removed successfully' };
   }
 
@@ -121,9 +121,9 @@ export class ReactionController {
   @ApiResponse({ status: 404, description: 'No reaction found' })
   async getUserReactionToMessage(
     @Param('messageId', ParseUUIDPipe) messageId: string,
-    @Request() req: any,
+    @CurrentUser() user: User,
   ): Promise<Reaction | null> {
-    return this.reactionService.getUserReaction(messageId, req.user.id);
+    return this.reactionService.getUserReaction(messageId, user.id);
   }
 
   @Get('user/my-reactions')
@@ -150,14 +150,14 @@ export class ReactionController {
   async getMyReactions(
     @Query('page', new ParseIntPipe({ optional: true })) page: number = 1,
     @Query('limit', new ParseIntPipe({ optional: true })) limit: number = 20,
-    @Request() req: any,
+    @CurrentUser() user: User,
   ): Promise<{
     reactions: Reaction[];
     total: number;
     page: number;
     limit: number;
   }> {
-    return this.reactionService.getUserReactions(req.user.id, page, limit);
+    return this.reactionService.getUserReactions(user.id, page, limit);
   }
 
   @Get('user/stats')
@@ -188,8 +188,8 @@ export class ReactionController {
       },
     },
   })
-  async getMyReactionStats(@Request() req: any) {
-    return this.reactionService.getUserReactionStats(req.user.id);
+  async getMyReactionStats(@CurrentUser() user: User) {
+    return this.reactionService.getUserReactionStats(user.id);
   }
 
   @Get('trending')
