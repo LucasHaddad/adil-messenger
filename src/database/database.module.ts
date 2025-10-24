@@ -15,10 +15,10 @@ import { User, Message, Reaction } from '@/entities';
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_DATABASE'),
         entities: [User, Message, Reaction],
-        synchronize: configService.get('NODE_ENV') === 'development', // Enable synchronize in development
+        synchronize: configService.get('DB_SYNCHRONIZE') === 'true',
         logging: configService.get('DB_LOGGING') === 'true',
         ssl:
-          configService.get('NODE_ENV') === 'production'
+          configService.get('DB_SSL') === 'true'
             ? { rejectUnauthorized: false }
             : false,
       }),

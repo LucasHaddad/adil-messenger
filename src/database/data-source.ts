@@ -25,7 +25,7 @@ export default new DataSource({
   synchronize: false,
   logging: configService.get('DB_LOGGING') === 'true',
   ssl:
-    configService.get('NODE_ENV') === 'production'
+    configService.get('DB_SSL') === 'true'
       ? { rejectUnauthorized: false }
       : false,
 });
