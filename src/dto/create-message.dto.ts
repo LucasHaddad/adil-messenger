@@ -34,15 +34,17 @@ export class CreateMessageDto {
   content: string;
 
   @ApiProperty({
-    description: 'The ID of the user sending the message',
+    description:
+      'The ID of the user sending the message (automatically populated from JWT)',
     example: '123e4567-e89b-12d3-a456-426614174000',
+    required: false,
   })
+  @IsOptional()
   @IsString({ message: 'Author ID must be a string' })
-  @IsNotEmpty({ message: 'Author ID is required' })
   @Matches(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, {
     message: 'Author ID must be a valid UUID',
   })
-  authorId: string;
+  authorId?: string;
 
   @ApiProperty({
     description: 'The ID of the parent message if this is a reply',
