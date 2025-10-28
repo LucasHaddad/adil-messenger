@@ -12,8 +12,6 @@ describe('SearchController', () => {
     searchMessages: jest.fn(),
     getSuggestions: jest.fn(),
     getPopularSearchTerms: jest.fn(),
-    createSearchIndex: jest.fn(),
-    dropSearchIndex: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -155,28 +153,6 @@ describe('SearchController', () => {
 
       expect(result).toEqual({ terms: mockTerms });
       expect(searchService.getPopularSearchTerms).toHaveBeenCalledWith(10);
-    });
-  });
-
-  describe('createSearchIndex', () => {
-    it('should create search index', async () => {
-      mockSearchService.createSearchIndex.mockResolvedValue(undefined);
-
-      const result = await controller.createSearchIndex();
-
-      expect(result).toEqual({ message: 'Search index created successfully' });
-      expect(searchService.createSearchIndex).toHaveBeenCalled();
-    });
-  });
-
-  describe('dropSearchIndex', () => {
-    it('should drop search index', async () => {
-      mockSearchService.dropSearchIndex.mockResolvedValue(undefined);
-
-      const result = await controller.dropSearchIndex();
-
-      expect(result).toEqual({ message: 'Search index dropped successfully' });
-      expect(searchService.dropSearchIndex).toHaveBeenCalled();
     });
   });
 });

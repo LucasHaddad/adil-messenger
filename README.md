@@ -81,15 +81,12 @@ A comprehensive chat system API built with **NestJS**, **TypeScript**, **Postgre
 - `GET /api/v1/reactions/trending` - Get trending reactions (requires authentication)
 
 ### Files
-- `POST /api/v1/files/upload` - Upload a file for message attachment (requires authentication)
 - `GET /api/v1/files/:filename` - Download or view an uploaded file (requires authentication)
 
 ### Search
 - `GET /api/v1/search/messages` - Search messages with full-text search and filters (requires authentication)
 - `GET /api/v1/search/suggestions` - Get autocomplete suggestions for search queries (requires authentication)
 - `GET /api/v1/search/popular` - Get popular search terms (requires authentication)
-- `POST /api/v1/search/index` - Create or rebuild search index for performance (requires authentication)
-- `DELETE /api/v1/search/index` - Drop search index (requires authentication)
 
 ## 🛠️ Installation & Setup
 
@@ -261,13 +258,6 @@ curl -G http://localhost:3000/api/v1/search/suggestions \
   -H "X-CSRF-Token: YOUR_CSRF_TOKEN" \
   -d "q=hel" \
   -d "limit=5"
-```
-
-### Creating Search Index (Authenticated)
-```bash
-curl -X POST http://localhost:3000/api/v1/search/index \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -H "X-CSRF-Token: YOUR_CSRF_TOKEN"
 ```
 
 ## 🏗️ Project Structure

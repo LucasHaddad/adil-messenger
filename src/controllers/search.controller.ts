@@ -5,8 +5,6 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
-  Post,
-  Delete,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -144,70 +142,5 @@ export class SearchController {
       parseInt(limit, 10),
     );
     return { terms };
-  }
-
-  @Post('index')
-  @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({
-    summary: 'Create search index',
-    description:
-      'Create or rebuild the full-text search index for better performance.',
-  })
-  @ApiResponse({
-    status: 201,
-    description: 'Search index created successfully',
-    schema: {
-      type: 'object',
-      properties: {
-        message: {
-          type: 'string',
-          example: 'Search index created successfully',
-        },
-      },
-    },
-  })
-  @ApiResponse({
-    status: 401,
-    description: 'Unauthorized access',
-  })
-  @ApiResponse({
-    status: 500,
-    description: 'Failed to create search index',
-  })
-  async createSearchIndex(): Promise<{ message: string }> {
-    await this.searchService.createSearchIndex();
-    return { message: 'Search index created successfully' };
-  }
-
-  @Delete('index')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: 'Drop search index',
-    description: 'Remove the full-text search index.',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Search index dropped successfully',
-    schema: {
-      type: 'object',
-      properties: {
-        message: {
-          type: 'string',
-          example: 'Search index dropped successfully',
-        },
-      },
-    },
-  })
-  @ApiResponse({
-    status: 401,
-    description: 'Unauthorized access',
-  })
-  @ApiResponse({
-    status: 500,
-    description: 'Failed to drop search index',
-  })
-  async dropSearchIndex(): Promise<{ message: string }> {
-    await this.searchService.dropSearchIndex();
-    return { message: 'Search index dropped successfully' };
   }
 }

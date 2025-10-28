@@ -134,17 +134,4 @@ export class SearchService {
 
     return result.map(row => row.word);
   }
-
-  async createSearchIndex(): Promise<void> {
-    await this.messageRepository.query(`
-      CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_message_content_fts 
-      ON messages USING gin(to_tsvector('english', content));
-    `);
-  }
-
-  async dropSearchIndex(): Promise<void> {
-    await this.messageRepository.query(`
-      DROP INDEX CONCURRENTLY IF EXISTS idx_message_content_fts;
-    `);
-  }
 }

@@ -282,25 +282,4 @@ describe('SearchService', () => {
       expect(result).toEqual([]);
     });
   });
-
-  describe('createSearchIndex', () => {
-    it('should create search index', async () => {
-      await service.createSearchIndex();
-
-      expect(mockMessageRepository.query).toHaveBeenCalledWith(`
-      CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_message_content_fts 
-      ON messages USING gin(to_tsvector('english', content));
-    `);
-    });
-  });
-
-  describe('dropSearchIndex', () => {
-    it('should drop search index', async () => {
-      await service.dropSearchIndex();
-
-      expect(mockMessageRepository.query).toHaveBeenCalledWith(`
-      DROP INDEX CONCURRENTLY IF EXISTS idx_message_content_fts;
-    `);
-    });
-  });
 });
