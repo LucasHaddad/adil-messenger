@@ -67,6 +67,7 @@ export class MessageService {
     page: number = 1,
     limit: number = 20,
     parentMessageId?: string,
+    userId?: string,
   ): Promise<{
     messages: Message[];
     total: number;
@@ -79,6 +80,10 @@ export class MessageService {
       whereClause.parentMessageId = parentMessageId;
     } else {
       whereClause.parentMessageId = null;
+    }
+
+    if (userId !== undefined) {
+      whereClause.authorId = userId;
     }
 
     const [messages, total] = await this.messageRepository.findAndCount({

@@ -19,8 +19,8 @@ import {
 } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { Response } from 'express';
-import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
-import { CsrfGuard } from '@/auth/guards/csrf.guard';
+import { JwtAuthGuard } from '@/guards/jwt-auth.guard';
+import { CsrfGuard } from '@/guards/csrf.guard';
 import {
   FileUploadService,
   UploadedFile as CustomUploadedFile,

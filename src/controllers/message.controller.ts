@@ -28,8 +28,8 @@ import {
   ApiConsumes,
 } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
-import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
-import { CsrfGuard } from '@/auth/guards/csrf.guard';
+import { JwtAuthGuard } from '@/guards/jwt-auth.guard';
+import { CsrfGuard } from '@/guards/csrf.guard';
 import { CurrentUser } from '@/decorators/current-user.decorator';
 import { MessageService } from '@/services/message.service';
 import {
@@ -188,6 +188,41 @@ export class MessageController {
     limit: number;
   }> {
     return this.messageService.getMessages(page, limit);
+  }
+
+  @Get('users/:id')
+  @ApiOperation({ summary: 'Get all messages of a user with pagination' })
+  @ApiParam({
+    name: 'id',
+    required: true,
+    description: 'User UUID',
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'Page number (default: 1)',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'Items per page (default: 20)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Messages retrieved successfully',
+    type: [MessageResponseDto],
+  })
+  async getMessagesByUser(
+    @Param('id', ParseUUIDPipe) userId: string,
+    @Query('page', new ParseIntPipe({ optional: true })) page: number = 1,
+    @Query('limit', new ParseIntPipe({ optional: true })) limit: number = 20,
+  ): Promise<{
+    messages: Message[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
+    return this.messageService.getMessages(page, limit, undefined, userId);
   }
 
   @Get(':id')

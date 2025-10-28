@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UnauthorizedException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { JwtStrategy } from '@/auth/strategies/jwt.strategy';
+import { JwtStrategy } from '@/strategies/jwt.strategy';
 import { User } from '@/entities/user.entity';
 import { createMockUser } from '@/test/test-utils';
 

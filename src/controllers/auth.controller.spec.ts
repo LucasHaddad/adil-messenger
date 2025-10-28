@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AuthController } from '@/auth/auth.controller';
-import { AuthService } from '@/auth/auth.service';
+import { AuthController } from '@/controllers/auth.controller';
+import { AuthService } from '@/services/auth.service';
 import { LoginDto } from '@/dto/login.dto';
 import { RegisterDto } from '@/dto/register.dto';
 import { ConflictException, UnauthorizedException } from '@nestjs/common';

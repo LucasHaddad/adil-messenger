@@ -19,8 +19,8 @@ import { Throttle } from '@nestjs/throttler';
 import { SearchService } from '@/services/search.service';
 import { MessageSearchDto } from '@/dto/message-search.dto';
 import { MessageSearchResponseDto } from '@/dto/message-search-response.dto';
-import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
-import { CsrfGuard } from '@/auth/guards/csrf.guard';
+import { JwtAuthGuard } from '@/guards/jwt-auth.guard';
+import { CsrfGuard } from '@/guards/csrf.guard';
 
 @ApiTags('search')
 @Controller('search')

@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ConfigModule } from '@nestjs/config';
-import { AuthModule } from '../src/auth/auth.module';
+import { AuthModule } from '../src/modules/auth.module';
 import { MessageModule } from '../src/modules/message.module';
 import { User } from '../src/entities/user.entity';
 import { Message } from '../src/entities/message.entity';

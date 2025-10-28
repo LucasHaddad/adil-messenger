@@ -11,7 +11,7 @@ import { User } from '@/entities/user.entity';
 import { LoginDto } from '@/dto/login.dto';
 import { RegisterDto } from '@/dto/register.dto';
 import { AuthResponseDto } from '@/dto/auth-response.dto';
-import { JwtPayload } from '@/auth/strategies/jwt.strategy';
+import { JwtPayload } from '@/strategies/jwt.strategy';
 import { SecurityLoggerService } from '@/services/security-logger.service';
 
 @Injectable()

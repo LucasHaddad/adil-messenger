@@ -16,6 +16,7 @@ import { NotFoundException, ForbiddenException } from '@nestjs/common';
 describe('MessageController', () => {
   let controller: MessageController;
   let messageService: jest.Mocked<MessageService>;
+  let fileUploadService: jest.Mocked<FileUploadService>;
 
   beforeEach(async () => {
     const mockMessageService = {
@@ -28,6 +29,11 @@ describe('MessageController', () => {
       deleteMessage: jest.fn(),
     };
 
+    const mockFileUploadService = {
+      uploadFile: jest.fn(),
+      validateFileForMessage: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [MessageController],
       providers: [
@@ -37,16 +43,14 @@ describe('MessageController', () => {
         },
         {
           provide: FileUploadService,
-          useValue: {
-            uploadFile: jest.fn(),
-            validateFileForMessage: jest.fn(),
-          },
+          useValue: mockFileUploadService,
         },
       ],
     }).compile();
 
     controller = module.get<MessageController>(MessageController);
     messageService = module.get(MessageService);
+    fileUploadService = module.get(FileUploadService);
   });
 
   afterEach(() => {
@@ -108,6 +112,125 @@ describe('MessageController', () => {
     });
   });
 
+  describe('createMessageWithAttachment', () => {
+    const createMessageDto: CreateMessageDto = {
+      content: 'Test message with attachment',
+    };
+
+    const mockFile = {
+      originalname: 'test.txt',
+      mimetype: 'text/plain',
+      size: 1024,
+      buffer: Buffer.from('test content'),
+    };
+
+    it('should create a message with attachment successfully', async () => {
+      const uploadResult = {
+        url: 'https://example.com/file.txt',
+        filename: 'uuid-filename.txt',
+        originalName: 'test.txt',
+        mimeType: 'text/plain',
+        size: 1024,
+      };
+
+      const expectedMessage = createMockMessage({
+        ...createMessageDto,
+        authorId: testUser1.id,
+        attachmentUrl: uploadResult.url,
+        attachmentName: uploadResult.originalName,
+        attachmentType: uploadResult.mimeType,
+        attachmentSize: uploadResult.size,
+      });
+
+      fileUploadService.uploadFile.mockResolvedValue(uploadResult);
+      messageService.createMessage.mockResolvedValue(expectedMessage);
+
+      const result = await controller.createMessageWithAttachment(
+        createMessageDto,
+        mockFile,
+        testUser1,
+      );
+
+      expect(fileUploadService.uploadFile).toHaveBeenCalledWith({
+        originalname: mockFile.originalname,
+        mimetype: mockFile.mimetype,
+        size: mockFile.size,
+        buffer: mockFile.buffer,
+      });
+
+      expect(messageService.createMessage).toHaveBeenCalledWith({
+        ...createMessageDto,
+        authorId: testUser1.id,
+        attachmentUrl: uploadResult.url,
+        attachmentName: uploadResult.originalName,
+        attachmentType: uploadResult.mimeType,
+        attachmentSize: uploadResult.size,
+      });
+
+      expect(result).toEqual(expectedMessage);
+    });
+
+    it('should create a message without attachment when no file provided', async () => {
+      const expectedMessage = createMockMessage({
+        ...createMessageDto,
+        authorId: testUser1.id,
+      });
+
+      messageService.createMessage.mockResolvedValue(expectedMessage);
+
+      const result = await controller.createMessageWithAttachment(
+        createMessageDto,
+        undefined,
+        testUser1,
+      );
+
+      expect(fileUploadService.uploadFile).not.toHaveBeenCalled();
+      expect(messageService.createMessage).toHaveBeenCalledWith({
+        ...createMessageDto,
+        authorId: testUser1.id,
+      });
+
+      expect(result).toEqual(expectedMessage);
+    });
+
+    it('should handle file upload errors', async () => {
+      const uploadError = new Error('File upload failed');
+      fileUploadService.uploadFile.mockRejectedValue(uploadError);
+
+      await expect(
+        controller.createMessageWithAttachment(
+          createMessageDto,
+          mockFile,
+          testUser1,
+        ),
+      ).rejects.toThrow(uploadError);
+
+      expect(messageService.createMessage).not.toHaveBeenCalled();
+    });
+
+    it('should propagate message creation errors even with successful file upload', async () => {
+      const uploadResult = {
+        url: 'https://example.com/file.txt',
+        filename: 'uuid-filename.txt',
+        originalName: 'test.txt',
+        mimeType: 'text/plain',
+        size: 1024,
+      };
+
+      const messageError = new NotFoundException('Author not found');
+      fileUploadService.uploadFile.mockResolvedValue(uploadResult);
+      messageService.createMessage.mockRejectedValue(messageError);
+
+      await expect(
+        controller.createMessageWithAttachment(
+          createMessageDto,
+          mockFile,
+          testUser1,
+        ),
+      ).rejects.toThrow(messageError);
+    });
+  });
+
   describe('getMessages', () => {
     it('should return paginated messages with default parameters', async () => {
       const expectedResult = {
@@ -146,6 +269,93 @@ describe('MessageController', () => {
       messageService.getMessages.mockRejectedValue(error);
 
       await expect(controller.getMessages()).rejects.toThrow(error);
+    });
+  });
+
+  describe('getMessagesByUser', () => {
+    it('should return paginated messages for a specific user with default parameters', async () => {
+      const expectedResult = {
+        messages: [testMessage1],
+        total: 1,
+        page: 1,
+        limit: 20,
+      };
+      messageService.getMessages.mockResolvedValue(expectedResult);
+
+      const result = await controller.getMessagesByUser(testUser1.id);
+
+      expect(messageService.getMessages).toHaveBeenCalledWith(
+        1,
+        20,
+        undefined,
+        testUser1.id,
+      );
+      expect(result).toEqual(expectedResult);
+    });
+
+    it('should return paginated messages for a specific user with custom parameters', async () => {
+      const page = 3;
+      const limit = 5;
+      const expectedResult = {
+        messages: [testMessage1],
+        total: 10,
+        page,
+        limit,
+      };
+      messageService.getMessages.mockResolvedValue(expectedResult);
+
+      const result = await controller.getMessagesByUser(
+        testUser1.id,
+        page,
+        limit,
+      );
+
+      expect(messageService.getMessages).toHaveBeenCalledWith(
+        page,
+        limit,
+        undefined,
+        testUser1.id,
+      );
+      expect(result).toEqual(expectedResult);
+    });
+
+    it('should handle user not found errors', async () => {
+      const error = new NotFoundException('User not found');
+      messageService.getMessages.mockRejectedValue(error);
+
+      await expect(
+        controller.getMessagesByUser('nonexistent-user-id'),
+      ).rejects.toThrow(error);
+    });
+
+    it('should return empty result for user with no messages', async () => {
+      const expectedResult = {
+        messages: [],
+        total: 0,
+        page: 1,
+        limit: 20,
+      };
+      messageService.getMessages.mockResolvedValue(expectedResult);
+
+      const result = await controller.getMessagesByUser(testUser2.id);
+
+      expect(messageService.getMessages).toHaveBeenCalledWith(
+        1,
+        20,
+        undefined,
+        testUser2.id,
+      );
+      expect(result).toEqual(expectedResult);
+    });
+
+    it('should handle invalid UUID format', async () => {
+      const invalidId = 'invalid-uuid';
+      const error = new Error('Invalid UUID format');
+      messageService.getMessages.mockRejectedValue(error);
+
+      await expect(controller.getMessagesByUser(invalidId)).rejects.toThrow(
+        error,
+      );
     });
   });
 

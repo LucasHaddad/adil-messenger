@@ -3,7 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Repository } from 'typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { ConflictException, UnauthorizedException } from '@nestjs/common';
-import { AuthService } from '@/auth/auth.service';
+import { AuthService } from '@/services/auth.service';
 import { User } from '@/entities/user.entity';
 import { LoginDto } from '@/dto/login.dto';
 import { RegisterDto } from '@/dto/register.dto';

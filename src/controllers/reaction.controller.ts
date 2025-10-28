@@ -20,8 +20,8 @@ import {
   ApiBearerAuth,
   ApiHeader,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
-import { CsrfGuard } from '@/auth/guards/csrf.guard';
+import { JwtAuthGuard } from '@/guards/jwt-auth.guard';
+import { CsrfGuard } from '@/guards/csrf.guard';
 import { CurrentUser } from '@/decorators/current-user.decorator';
 import { ReactionService } from '@/services/reaction.service';
 import { CreateReactionDto } from '@/dto/create-reaction.dto';

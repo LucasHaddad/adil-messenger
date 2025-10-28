@@ -18,10 +18,10 @@ import {
 } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import * as _ from 'lodash';
-import { AuthService } from '@/auth/auth.service';
-import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
-import { CsrfGuard } from '@/auth/guards/csrf.guard';
-import { Public, SkipCsrf } from '@/auth/decorators/public.decorator';
+import { AuthService } from '@/services/auth.service';
+import { JwtAuthGuard } from '@/guards/jwt-auth.guard';
+import { CsrfGuard } from '@/guards/csrf.guard';
+import { Public, SkipCsrf } from '@/decorators/public.decorator';
 import { LoginDto } from '@/dto/login.dto';
 import { RegisterDto } from '@/dto/register.dto';
 import {
