@@ -1,12 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Reaction, ReactionType, Message, User } from '@/entities';
+import { Reaction, Message, User } from '@/entities';
 import { CreateReactionDto } from '@/dto/create-reaction.dto';
 import {
   ReactionCountDto,
   MessageReactionsDto,
 } from '@/dto/reaction-response.dto';
+import { ReactionType } from '@/enums';
 
 @Injectable()
 export class ReactionService {
