@@ -1,5 +1,5 @@
 import { User } from './user.entity';
 import { Message } from './message.entity';
-import { Reaction, ReactionType } from './reaction.entity';
+import { Reaction } from './reaction.entity';
 
-export { User, Message, Reaction, ReactionType };
+export { User, Message, Reaction };

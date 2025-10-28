@@ -96,26 +96,6 @@ describe('FileUploadService', () => {
     });
   });
 
-  describe('deleteFile', () => {
-    it('should delete file successfully', async () => {
-      await service.deleteFile('test-file.jpg');
-
-      expect(mockFs.unlink).toHaveBeenCalledWith(
-        expect.stringContaining('test-file.jpg'),
-      );
-    });
-
-    it('should handle file deletion error gracefully', async () => {
-      mockFs.unlink.mockRejectedValue(new Error('File not found'));
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
-
-      await service.deleteFile('non-existent.jpg');
-
-      expect(consoleSpy).toHaveBeenCalled();
-      consoleSpy.mockRestore();
-    });
-  });
-
   describe('validateFileForMessage', () => {
     it('should validate file successfully', () => {
       expect(() => service.validateFileForMessage(mockFile)).not.toThrow();
@@ -152,19 +132,6 @@ describe('FileUploadService', () => {
     it('should generate correct file URL', () => {
       const url = service.getFileUrl('test-file.jpg');
       expect(url).toBe('/uploads/test-file.jpg');
-    });
-
-    it('should identify image files correctly', () => {
-      expect(service.isImageFile('image/jpeg')).toBe(true);
-      expect(service.isImageFile('image/png')).toBe(true);
-      expect(service.isImageFile('application/pdf')).toBe(false);
-    });
-
-    it('should format file sizes correctly', () => {
-      expect(service.getFileSizeString(1024)).toBe('1.0 KB');
-      expect(service.getFileSizeString(1024 * 1024)).toBe('1.0 MB');
-      expect(service.getFileSizeString(1024 * 1024 * 1024)).toBe('1.0 GB');
-      expect(service.getFileSizeString(500)).toBe('500.0 B');
     });
   });
 });

@@ -9,19 +9,7 @@ import {
 } from 'typeorm';
 import { User } from './user.entity';
 import { Message } from './message.entity';
-
-export enum ReactionType {
-  LIKE = 'like',
-  DISLIKE = 'dislike',
-  HEART = 'heart',
-  LAUGH = 'laugh',
-  ANGRY = 'angry',
-  SURPRISED = 'surprised',
-  SAD = 'sad',
-  THUMBS_UP = 'thumbs_up',
-  THUMBS_DOWN = 'thumbs_down',
-  FIRE = 'fire',
-}
+import { ReactionType } from '@/enums';
 
 @Entity('reactions')
 @Unique(['userId', 'messageId'])

@@ -7,7 +7,6 @@ import { MessageModule } from '@/modules/message.module';
 import { UserModule } from '@/modules/user.module';
 import { AuthModule } from '@/modules/auth.module';
 import { WebSocketModule } from '@/modules/websocket.module';
-import { FileModule } from '@/modules/file.module';
 import { ReactionModule } from '@/modules/reaction.module';
 import { SearchModule } from '@/modules/search.module';
 import { HealthModule } from '@/modules/health.module';
@@ -38,7 +37,6 @@ import { CacheService } from '@/services/cache.service';
     MessageModule,
     UserModule,
     WebSocketModule,
-    FileModule,
     ReactionModule,
     SearchModule,
     HealthModule,

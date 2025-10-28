@@ -38,13 +38,7 @@ import {
 } from '@/services/file-upload.service';
 import { CreateMessageDto, UpdateMessageDto, MessageResponseDto } from '@/dto';
 import { Message, User } from '@/entities';
-
-interface MulterFile {
-  originalname: string;
-  mimetype: string;
-  size: number;
-  buffer: Buffer;
-}
+import { MulterFile } from '@/interfaces';
 
 @ApiTags('Messages')
 @ApiBearerAuth()

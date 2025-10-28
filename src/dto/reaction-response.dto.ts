@@ -1,5 +1,5 @@
+import { ReactionType } from '@/enums';
 import { ApiProperty } from '@nestjs/swagger';
-import { ReactionType } from '@/entities';
 
 export class ReactionResponseDto {
   @ApiProperty({

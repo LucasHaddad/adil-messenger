@@ -1,6 +1,6 @@
 import { IsEnum, IsString, IsNotEmpty } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { ReactionType } from '@/entities';
+import { ReactionType } from '@/enums';
 
 export class CreateReactionDto {
   @ApiProperty({

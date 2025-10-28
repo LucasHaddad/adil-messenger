@@ -20,7 +20,7 @@ import { SecurityLoggerService } from '@/services/security-logger.service';
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
         signOptions: {
-          expiresIn: '1h',
+          expiresIn: configService.get('JWT_EXPIRES_IN', '24h'),
         },
       }),
       inject: [ConfigService],
